@@ -1,0 +1,45 @@
+.navGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 600px;
+  border: 1px solid #ccc;
+  border-radius: 9px;
+}
+
+.navBtn {
+  padding: 20px 24px;
+  text-align: left;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  border: none;
+
+}
+
+.navBtnActive {
+  background: #1a73e8;
+  border-color: #1a73e8;
+}
+
+.btnTitle {
+  font-weight: 550;
+  color: inherit;
+  font-family: 'Roboto', sans-serif;
+}
+
+.btnSub {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.navBtnActive .btnTitle {
+  color: white;
+}
+
+.navBtnActive .btnSub {
+  color: rgba(255, 255, 255, 0.8);
+}
