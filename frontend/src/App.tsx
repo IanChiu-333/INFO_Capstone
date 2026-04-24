@@ -1,27 +1,12 @@
 import { useRef } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import AppLayout from '@cloudscape-design/components/app-layout';
 import TopNavigation from '@cloudscape-design/components/top-navigation';
-import SideNavigation from '@cloudscape-design/components/side-navigation';
-import Home from './pages/Home';
+import DashboardLayout    from './pages/DashboardLayout';
+import ProgramOverview    from './pages/ProgramOverview';
+import PerformanceReviews from './pages/PerformanceReviews';
+import FTEConversion      from './pages/FTEConversion';
 import './App.css';
-
-function Navigation() {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-
-  return (
-    <SideNavigation
-      activeHref={pathname}
-      header={{ text: 'My App', href: '/' }}
-      onFollow={(e) => {
-        e.preventDefault();
-        navigate(e.detail.href);
-      }}
-      items={[{ type: 'link', text: 'Home', href: '/' }]}
-    />
-  );
-}
 
 export default function App() {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -38,11 +23,7 @@ export default function App() {
               aria-label="Run search"
               onClick={() => searchInputRef.current?.focus()}
             >
-              <svg
-                className="top-nav-search__icon"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
+              <svg className="top-nav-search__icon" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
                 <line x1="16.65" y1="16.65" x2="21" y2="21" />
               </svg>
@@ -56,20 +37,21 @@ export default function App() {
             />
           </div>
         }
-        i18nStrings={{
-          overflowMenuTriggerText: 'More',
-          overflowMenuTitleText: 'All',
-        }}
+        i18nStrings={{ overflowMenuTriggerText: 'More', overflowMenuTitleText: 'All' }}
       />
       <AppLayout
         headerSelector="#h"
-        navigation={<Navigation />}
+        navigationHide
+        toolsHide
         content={
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<DashboardLayout />}>
+              <Route index element={<ProgramOverview />} />
+              <Route path="performance-reviews" element={<PerformanceReviews />} />
+              <Route path="fte-conversion" element={<FTEConversion />} />
+            </Route>
           </Routes>
         }
-        toolsHide
       />
     </>
   );

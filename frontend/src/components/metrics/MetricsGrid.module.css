@@ -1,0 +1,87 @@
+.gridWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Card */
+.card {
+  background: #ffffff;
+  border: 1px solid #c6c6cd;
+  border-radius: 8px;
+  padding: 17px;
+  min-height: 114px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font-size: 12px;
+  color: #656871;
+  line-height: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.valueRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f141a;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+}
+
+/* Inline colored text — no background pill */
+.delta {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.deltaPos { color: #037f0c; }
+.deltaNeg { color: #ff0b0b; }
+
+.sub {
+  font-size: 12px;
+  color: #656871;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+/* Dropdown inside card header */
+.dropdown {
+  font-size: 12px;
+  color: #656871;
+  line-height: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  appearance: auto;
+}
+
+.dropdown:focus {
+  outline: none;
+}
