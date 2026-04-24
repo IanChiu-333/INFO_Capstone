@@ -1,0 +1,38 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.card {
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e9ebed;
+  border-left-width: 4px;
+}
+
+.critical { border-left-color: #d13313; background: #fff8f7; }
+.warning  { border-left-color: #f89400; background: #fffbf0; }
+
+.count {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.countCritical { color: #d13313; }
+.countWarning  { color: #f89400; }
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0d1926;
+  margin-bottom: 6px;
+}
+
+.desc {
+  font-size: 12px;
+  color: #5f6b7a;
+  line-height: 1.5;
+}

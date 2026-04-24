@@ -1,0 +1,14 @@
+.totalBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 13px;
+  background: #f9f9fa;
+  border: 1px solid #c6c6cd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #424650;
+  white-space: nowrap;
+}

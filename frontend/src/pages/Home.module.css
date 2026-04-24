@@ -1,39 +1,45 @@
+/* ── Section nav tabs ── */
 .navGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
   max-width: 600px;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
   border-radius: 9px;
+  overflow: hidden;
 }
 
 .navBtn {
-  padding: 20px 24px;
+  padding: 16px 20px;
   text-align: left;
-  border-radius: 8px;
-  border: 1px solid #ccc;
   background: white;
-  cursor: pointer;
   border: none;
+  border-right: 1px solid #d1d5db;
+  cursor: pointer;
+  transition: background 0.15s;
+}
 
+.navBtn:last-child {
+  border-right: none;
+}
+
+.navBtn:hover:not(.navBtnActive) {
+  background: #f4f4f4;
 }
 
 .navBtnActive {
   background: #1a73e8;
-  border-color: #1a73e8;
 }
 
 .btnTitle {
-  font-weight: 550;
-  color: inherit;
-  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #0d1926;
 }
 
 .btnSub {
   font-size: 12px;
-  color: #666;
+  color: #5f6b7a;
   margin-top: 4px;
-  font-family: 'Roboto', sans-serif;
 }
 
 .navBtnActive .btnTitle {
@@ -42,4 +48,125 @@
 
 .navBtnActive .btnSub {
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Program Health Metrics ── */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.metricCard {
+  padding: 16px;
+  border: 1px solid #e9ebed;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.metricLabel {
+  font-size: 12px;
+  color: #5f6b7a;
+  margin-bottom: 10px;
+}
+
+.metricRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.metricValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0d1926;
+  line-height: 1;
+}
+
+.metricDelta {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.deltaPos {
+  background: #e6f9f0;
+  color: #1d8102;
+}
+
+.deltaNeg {
+  background: #fdf3f0;
+  color: #d13313;
+}
+
+.metricSub {
+  font-size: 12px;
+  color: #5f6b7a;
+}
+
+/* ── Requires Action ── */
+.alertGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.alertCard {
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e9ebed;
+  border-left-width: 4px;
+}
+
+.alertCritical {
+  border-left-color: #d13313;
+  background: #fff8f7;
+}
+
+.alertWarning {
+  border-left-color: #f89400;
+  background: #fffbf0;
+}
+
+.alertCount {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.alertCountCritical { color: #d13313; }
+.alertCountWarning  { color: #f89400; }
+
+.alertTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0d1926;
+  margin-bottom: 6px;
+}
+
+.alertDesc {
+  font-size: 12px;
+  color: #5f6b7a;
+  line-height: 1.5;
+}
+
+/* ── Charts row ── */
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Legend ── */
+.legendCritical {
+  font-size: 13px;
+  color: #d13313;
+}
+
+.legendWarning {
+  font-size: 13px;
+  color: #f89400;
 }

@@ -1,0 +1,45 @@
+.navGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 600px;
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.navBtn {
+  padding: 16px 20px;
+  text-align: left;
+  background: white;
+  border: none;
+  border-right: 1px solid #d1d5db;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.navBtn:last-child {
+  border-right: none;
+}
+
+.navBtn:hover:not(.navBtnActive) {
+  background: #f4f4f4;
+}
+
+.navBtnActive {
+  background: #1a73e8;
+}
+
+.btnTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0d1926;
+}
+
+.btnSub {
+  font-size: 12px;
+  color: #5f6b7a;
+  margin-top: 4px;
+}
+
+.navBtnActive .btnTitle { color: white; }
+.navBtnActive .btnSub   { color: rgba(255,255,255,0.8); }
