@@ -8,9 +8,9 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import styles from './DashboardLayout.module.css';
 
 const NAV_TABS = [
-  { label: 'Program Overview',    sub: 'Dashboard & metrics',          path: '/' },
-  { label: 'Performance Reviews', sub: 'Review planning & scheduling', path: '/performance-reviews' },
-  { label: 'FTE Conversion',      sub: 'Graduation & hiring tracking', path: '/fte-conversion' },
+  { label: 'Program Overview',    path: '/' },
+  { label: 'Performance Reviews', path: '/performance-reviews' },
+  { label: 'FTE Conversion',      path: '/fte-conversion' },
 ];
 
 export default function DashboardLayout() {
@@ -34,27 +34,31 @@ export default function DashboardLayout() {
     >
       <SpaceBetween size="l">
         <Container>
-          <Header
-            variant="h1"
-            description="Performance reviews and FTE conversion tracking for May 2026 cycle"
-            actions={<Button iconName="download">Export Report</Button>}
-          >
-            Junior Developer Program Dashboard
-          </Header>
-        </Container>
-
-        <div className={styles.navGrid}>
-          {NAV_TABS.map((tab) => (
-            <button
-              key={tab.path}
-              onClick={() => navigate(tab.path)}
-              className={`${styles.navBtn} ${isActive(tab.path) ? styles.navBtnActive : ''}`}
+          <SpaceBetween size="m">
+            <Header
+              variant="h1"
+              description="Performance reviews and FTE conversion tracking for May 2026 cycle"
+              actions={<Button variant="primary" iconName="download">Export report</Button>}
             >
-              <div className={styles.btnTitle}>{tab.label}</div>
-              <div className={styles.btnSub}>{tab.sub}</div>
-            </button>
-          ))}
-        </div>
+              Junior Developer Program Dashboard
+            </Header>
+
+            <div className={styles.tabBar}>
+              {NAV_TABS.map((tab) => (
+                <button
+                  key={tab.path}
+                  onClick={() => navigate(tab.path)}
+                  className={`${styles.tab} ${isActive(tab.path) ? styles.tabActive : ''}`}
+                >
+                  <div className={styles.tabInner}>
+                    <span className={styles.tabLabel}>{tab.label}</span>
+                  </div>
+                  <div className={styles.tabUnderline} />
+                </button>
+              ))}
+            </div>
+          </SpaceBetween>
+        </Container>
 
         <Outlet />
       </SpaceBetween>

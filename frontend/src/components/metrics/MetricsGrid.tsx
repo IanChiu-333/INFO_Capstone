@@ -7,150 +7,97 @@ interface Props {
   locationCounts: Record<string, number>;
 }
 
-function Delta({ value }: { value: number | null }) {
-  if (value === null || value === 0) return null;
-  const color = value > 0 ? styles.deltaPos : styles.deltaNeg;
-  const label = value > 0 ? `+${value}` : `${value}`;
-  return <span className={`${styles.delta} ${color}`}>{label}</span>;
-}
-
-function DeltaPct({ value }: { value: number | null }) {
-  if (value === null) return null;
-  const color = value > 0 ? styles.deltaPos : styles.deltaNeg;
-  const label = value > 0 ? `+${value}%` : `${value}%`;
-  return <span className={`${styles.delta} ${color}`}>{label}</span>;
-}
-
 export default function MetricsGrid({ metrics, locationCounts }: Props) {
   const locations = Object.keys(locationCounts).sort();
-  const [selectedLocation, setSelectedLocation] = useState(locations[0] ?? '');
-
-  const seasons = ['Season'];
-  const [selectedSeason] = useState('Season');
-
-  const locationCount = locationCounts[selectedLocation] ?? 0;
+  const [selectedLocation, setSelectedLocation]     = useState(locations[0] ?? '');
+  const [selectedCostCenter, setSelectedCostCenter] = useState(locations[0] ?? '');
 
   return (
-    <div className={styles.gridWrapper}>
+    <div className={styles.grid}>
       {/* Row 1 */}
-      <div className={styles.row}>
-        {/* Total Active Interns */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Total Active Interns</span>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.totalActiveInterns}</span>
-            <Delta value={metrics.totalActiveDelta} />
-          </div>
-          <span className={styles.sub}>All Stages Combined</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Total Active Interns</span>
         </div>
+        <span className={styles.cardValue}>{metrics.totalActiveInterns}</span>
+        <span className={styles.cardSub}>All stages combined</span>
+      </div>
 
-        {/* Location (dropdown) */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Location</span>
-            <select
-              className={styles.dropdown}
-              value={selectedLocation}
-              onChange={e => setSelectedLocation(e.target.value)}
-              aria-label="Select location"
-            >
-              {locations.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{locationCount}</span>
-            <Delta value={metrics.totalActiveDelta} />
-          </div>
-          <span className={styles.sub}>Number of JDE Interns</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Location</span>
+          <select
+            className={styles.select}
+            value={selectedLocation}
+            onChange={e => setSelectedLocation(e.target.value)}
+            aria-label="Select location"
+          >
+            {locations.map(loc => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
         </div>
+        <span className={styles.cardValue}>{locationCounts[selectedLocation] ?? 0}</span>
+        <span className={styles.cardSub}>Number of interns in {selectedLocation}</span>
+      </div>
 
-        {/* Joining This Month */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Joining This Month</span>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.joiningThisMonth}</span>
-            <DeltaPct value={metrics.joiningDeltaPct} />
-          </div>
-          <span className={styles.sub}>Last 6 Months Average</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Joining this Month</span>
         </div>
+        <span className={styles.cardValue}>{metrics.joiningThisMonth}</span>
+        <span className={styles.cardSub}>Number of interns</span>
+      </div>
 
-        {/* Leaving Per Month */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Leaving Per Month</span>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.leavingPerMonth}</span>
-            <DeltaPct value={metrics.leavingDeltaPct} />
-          </div>
-          <span className={styles.sub}>Last 6 Months Average</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Leaving each month</span>
         </div>
+        <span className={styles.cardValue}>{metrics.leavingPerMonth}</span>
+        <span className={styles.cardSub}>Last 6 month average</span>
       </div>
 
       {/* Row 2 */}
-      <div className={styles.row}>
-        {/* Total Program Duration */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Total Program Duration</span>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.avgProgramDurationMonths} mo</span>
-          </div>
-          <span className={styles.sub}>Start to Graduation</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Program Duration</span>
         </div>
+        <span className={styles.cardValue}>{metrics.avgProgramDurationMonths} mo</span>
+        <span className={styles.cardSub}>Start to graduation</span>
+      </div>
 
-        {/* Graduating (Season dropdown) */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Graduating</span>
-            <select
-              className={styles.dropdown}
-              value={selectedSeason}
-              aria-label="Select season"
-              onChange={() => {}}
-            >
-              {seasons.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.graduatingThisSeason}</span>
-            <DeltaPct value={metrics.graduatingDeltaPct} />
-          </div>
-          <span className={styles.sub}>Number this Season</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Cost Center</span>
+          <select
+            className={styles.select}
+            value={selectedCostCenter}
+            onChange={e => setSelectedCostCenter(e.target.value)}
+            aria-label="Select cost center"
+          >
+            {locations.map(loc => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
         </div>
+        <span className={styles.cardValue}>{locationCounts[selectedCostCenter] ?? 0}</span>
+        <span className={styles.cardSub}>Number of interns per center</span>
+      </div>
 
-        {/* Overall Conversion Rate */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Overall Conversion Rate</span>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.overallConversionRate}%</span>
-            <DeltaPct value={metrics.conversionDeltaPct} />
-          </div>
-          <span className={styles.sub}>Last 6 Months Average</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Conversion Rate</span>
         </div>
+        <span className={styles.cardValue}>{metrics.overallConversionRate}%</span>
+        <span className={styles.cardSub}>Last 6 month average</span>
+      </div>
 
-        {/* Post-Program Retention */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.label}>Post-Program Retention</span>
-          </div>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{metrics.postProgramRetentionRate}%</span>
-            <DeltaPct value={metrics.retentionDeltaPct} />
-          </div>
-          <span className={styles.sub}>Last 6 Months Average</span>
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardTitle}>Post-program Retention</span>
         </div>
+        <span className={styles.cardValue}>{metrics.postProgramRetentionRate}%</span>
+        <span className={styles.cardSub}>Last 6 month average</span>
       </div>
     </div>
   );

@@ -1,87 +1,82 @@
-.gridWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.row {
+.grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
 }
 
-/* Card */
-.card {
-  background: #ffffff;
-  border: 1px solid #c6c6cd;
-  border-radius: 8px;
-  padding: 17px;
-  min-height: 114px;
-  min-width: 160px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+/* 2 columns on medium screens (tablets) */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.cardHeader {
+/* 1 column on small screens (mobile) */
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.card {
+  background: white;
+  border: 1px solid #dedee3;
+  border-radius: 16px;
+  padding: 16px 20px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
-.label {
-  font-size: 12px;
-  color: #656871;
-  line-height: 16px;
-  font-weight: 400;
-  white-space: nowrap;
+.cardTitle {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #006ce0;
+  line-height: 20px;
+  letter-spacing: -0.08px;
 }
 
-.valueRow {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.value {
-  font-size: 28px;
+.cardValue {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 24px;
   font-weight: 700;
   color: #0f141a;
-  line-height: 32px;
-  letter-spacing: -0.4px;
+  line-height: 30px;
+  letter-spacing: -0.48px;
   white-space: nowrap;
 }
 
-/* Inline colored text — no background pill */
-.delta {
+.cardSub {
+  font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: 400;
+  color: #0f141a;
   line-height: 20px;
-  white-space: nowrap;
 }
 
-.deltaPos { color: #037f0c; }
-.deltaNeg { color: #ff0b0b; }
-
-.sub {
-  font-size: 12px;
+.select {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-style: italic;
   color: #656871;
-  line-height: 16px;
-  font-weight: 400;
-}
-
-/* Dropdown inside card header */
-.dropdown {
-  font-size: 12px;
-  color: #656871;
-  line-height: 16px;
-  border: none;
-  background: transparent;
+  border: 1px solid #8c8c94;
+  border-radius: 8px;
+  padding: 4px 10px;
+  background: white;
   cursor: pointer;
-  padding: 0;
-  appearance: auto;
+  min-height: 32px;
+  max-width: 120px;
 }
 
-.dropdown:focus {
-  outline: none;
+.select:focus {
+  outline: 2px solid #006ce0;
+  outline-offset: 1px;
 }

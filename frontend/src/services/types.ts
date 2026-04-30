@@ -9,6 +9,7 @@ export interface Intern {
   id: string;
   name: string;
   manager: string;
+  l8: string;                      // Skip-level (L8) manager
   location: string;
   stage: InternStage;
   startDate: string;               // ISO date: YYYY-MM-DD
