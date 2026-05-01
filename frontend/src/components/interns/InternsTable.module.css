@@ -1,3 +1,13 @@
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchWrapper {
+  width: 440px;
+}
+
 .totalBadge {
   display: inline-flex;
   align-items: center;

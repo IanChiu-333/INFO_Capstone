@@ -10,7 +10,8 @@ const LAST_NAMES = [
   'Taylor','Brown','Garcia','Davis','Rodriguez','Lewis','Lee','Walker','Hall','Young',
   'Allen','Hernandez','King','Wright','Scott','Green','Adams','Baker','Nelson','Carter',
 ];
-const MANAGERS = ['Manager A','Manager B','Manager C','Manager D','Manager E'];
+const MANAGERS    = ['Manager A','Manager B','Manager C','Manager D','Manager E'];
+const L8_MANAGERS = ['L8 Manager X','L8 Manager Y','L8 Manager Z'];
 const LOCATIONS = ['Seattle','San Francisco','Austin','New York','Boston','Chicago'];
 const STAGES = ['Stage 1','Stage 2','Stage 3','Stage 4'] as const;
 
@@ -74,6 +75,7 @@ export const MOCK_INTERNS: Intern[] = (() => {
         id: `intern-${idx + 1}`,
         name: `${FIRST_NAMES[(idx * 7) % FIRST_NAMES.length]} ${LAST_NAMES[(idx * 11) % LAST_NAMES.length]}`,
         manager: MANAGERS[idx % MANAGERS.length],
+        l8: L8_MANAGERS[idx % L8_MANAGERS.length],
         location: LOCATIONS[idx % LOCATIONS.length],
         stage,
         startDate,

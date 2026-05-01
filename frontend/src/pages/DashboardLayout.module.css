@@ -1,47 +1,98 @@
-.navGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  max-width: 600px;
-  border: 1px solid #d1d5db;
-  border-radius: 9px;
-  overflow: hidden;
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid #c6c6cd;
 }
 
-.navBtn {
-  padding: 16px 20px;
-  text-align: left;
-  background: white;
-  border: none;
-  border-right: 1px solid #d1d5db;
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
   cursor: pointer;
-  transition: background 0.15s;
+  background: none;
+  border: none;
+  border-right: 1px solid #c6c6cd;
+  padding: 0;
 }
 
-.navBtn:last-child {
+.tab:last-child {
   border-right: none;
 }
 
-.navBtn:hover:not(.navBtnActive) {
-  background: #f4f4f4;
+.tabInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px 4px 20px;
 }
 
-.navBtnActive {
-  background: #1a73e8;
+.tabLabel {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: -0.08px;
+  color: #424650;
+  white-space: nowrap;
 }
 
-.btnTitle {
-  font-weight: 600;
-  font-size: 14px;
-  color: #0d1926;
-  font-family: 'Inter', sans-serif;
+/* Shrink tab padding and font on medium screens */
+@media (max-width: 700px) {
+  .tabInner {
+    padding: 8px 12px 4px 12px;
+  }
+
+  .tabLabel {
+    font-size: 13px;
+    letter-spacing: 0;
+  }
 }
 
-.btnSub {
-  font-size: 12px;
-  color: #5f6b7a;
-  margin-top: 4px;
-  font-family: 'Inter', sans-serif;
+/* Stack tabs vertically on very small screens */
+@media (max-width: 420px) {
+  .tabBar {
+    flex-direction: column;
+    border-bottom: none;
+    border: 1px solid #c6c6cd;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .tab {
+    border-right: none;
+    border-bottom: 1px solid #c6c6cd;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .tab:last-child {
+    border-bottom: none;
+  }
+
+  .tabInner {
+    padding: 10px 16px;
+  }
+
+  .tabUnderline {
+    display: none;
+  }
+
+  .tabActive {
+    background: #f0f7ff;
+  }
 }
 
-.navBtnActive .btnTitle { color: white; }
-.navBtnActive .btnSub   { color: rgba(255,255,255,0.8); }
+.tabActive .tabLabel {
+  color: #006ce0;
+}
+
+.tabUnderline {
+  height: 4px;
+  border-radius: 2px;
+  width: 100%;
+}
+
+.tabActive .tabUnderline {
+  background: #006ce0;
+}
