@@ -34,7 +34,7 @@ export const mockInternService: InternService = {
   getInterns: () => Promise.resolve(MOCK_INTERNS),
 
   getIntern: (id) =>
-    Promise.resolve(MOCK_INTERNS.find(i => i.id === id) ?? null),
+    Promise.resolve(MOCK_INTERNS.find(i => i.internId === id) ?? null),
 
   getMetrics: () =>
     Promise.resolve(computeMetrics(MOCK_INTERNS)),

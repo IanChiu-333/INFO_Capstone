@@ -31,7 +31,7 @@ export function computeEnrollmentTrend(
     const monthStart = new Date(`${referenceYear}-${String(m).padStart(2,'0')}-01T00:00:00Z`);
     const count = interns.filter(intern => {
       const start = new Date(intern.startDate + 'T00:00:00Z');
-      const grad  = new Date(intern.graduationDate + 'T00:00:00Z');
+      const grad  = new Date(intern.expectedGraduationDate + 'T00:00:00Z');
       return start <= monthStart && grad > monthStart;
     }).length;
     return { month: abbr, count };
@@ -39,24 +39,24 @@ export function computeEnrollmentTrend(
 }
 
 export function computeMetrics(interns: Intern[]): ProgramMetrics {
-  const active = interns.filter(i => i.status === 'Active');
+  const active = interns.filter(i => i.programStatus === 'Active');
 
   const seasonMonths = ['2026-05','2026-06','2026-12'];
   const graduatingThisSeason = active.filter(i =>
-    seasonMonths.some(m => i.graduationDate.startsWith(m))
+    seasonMonths.some(m => i.expectedGraduationDate.startsWith(m))
   ).length;
 
   const graduatingByMonth = ['May','Jun','Dec'].map(abbr => ({
     month: abbr,
     count: active.filter(i => {
-      const d = new Date(i.graduationDate + 'T00:00:00Z');
+      const d = new Date(i.expectedGraduationDate + 'T00:00:00Z');
       return MONTH_ABBR[d.getUTCMonth()] === abbr;
     }).length,
   }));
 
   const durations = active.map(i => {
     const start = new Date(i.startDate + 'T00:00:00Z');
-    const grad  = new Date(i.graduationDate + 'T00:00:00Z');
+    const grad  = new Date(i.expectedGraduationDate + 'T00:00:00Z');
     return (grad.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
   });
   const avgDuration = durations.length
@@ -73,13 +73,13 @@ export function computeMetrics(interns: Intern[]): ProgramMetrics {
   const currentYYYYMM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const joiningThisMonth = active.filter(i => i.startDate.startsWith(currentYYYYMM)).length;
 
-  // leavingPerMonth: avg interns whose graduationDate falls in any of the last 6 months
+  // leavingPerMonth: avg interns whose expectedGraduationDate falls in any of the last 6 months
   const recentMonths = Array.from({ length: 6 }, (_, k) => {
     const d = new Date(now.getFullYear(), now.getMonth() - k, 1);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
   const leavingPerMonth = Math.round(
-    interns.filter(i => recentMonths.some(m => i.graduationDate.startsWith(m))).length / 6,
+    interns.filter(i => recentMonths.some(m => i.expectedGraduationDate.startsWith(m))).length / 6,
   );
 
   return {
@@ -107,17 +107,24 @@ export function computeActionItems(
 ): ActionItem[] {
   const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
   const cutoff = new Date(referenceDate.getTime() + NINETY_DAYS_MS);
-  const active = interns.filter(i => i.status === 'Active');
+  const active = interns.filter(i => i.programStatus === 'Active');
 
   const graduatingSoon = active.filter(i => {
-    const grad = new Date(i.graduationDate + 'T00:00:00Z');
+    const grad = new Date(i.expectedGraduationDate + 'T00:00:00Z');
     return grad > referenceDate && grad <= cutoff;
   });
+
+  const hasNoHiringMeeting = (i: Intern) => !i.hiringMeetingDate && !i.hiringMeetingUpcomingDate;
+
+  const dwellDays = (i: Intern) => {
+    const stageStart = i.lastPromotionDate ?? i.startDate;
+    return Math.floor((referenceDate.getTime() - new Date(stageStart + 'T00:00:00Z').getTime()) / (1000 * 60 * 60 * 24));
+  };
 
   return [
     {
       id: 'missing-hiring-meetings',
-      count: graduatingSoon.filter(i => !i.hiringMeetingScheduled).length,
+      count: graduatingSoon.filter(hasNoHiringMeeting).length,
       title: 'Missing Hiring Meetings',
       description: 'Interns graduating in <90 days without hiring meeting scheduled',
       severity: 'critical',
@@ -131,7 +138,7 @@ export function computeActionItems(
     },
     {
       id: 'stage-dwell-threshold',
-      count: active.filter(i => i.stageDwellDays > 90).length,
+      count: active.filter(i => dwellDays(i) > 90).length,
       title: 'Stage Dwell Threshold',
       description: 'Interns exceeding recommended stage dwell time',
       severity: 'warning',

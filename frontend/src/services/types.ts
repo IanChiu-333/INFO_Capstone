@@ -1,25 +1,26 @@
 export type InternStage = 'Stage 1' | 'Stage 2' | 'Stage 3' | 'Stage 4';
 export type InclinedStatus = 'Yes' | 'No' | 'Pending';
-export type InternStatus = 'Active' | 'Graduated' | 'Withdrawn';
+export type ProgramStatus = 'Active' | 'Graduated' | 'Early Exit';
 export type ReviewStatus = 'Scheduled' | 'Completed' | 'Overdue' | 'Pending';
 export type ConversionStatus = 'Converted' | 'Pending' | 'Declined' | 'No Offer';
 export type ActionSeverity = 'critical' | 'warning';
 
 export interface Intern {
-  id: string;
-  name: string;
-  manager: string;
-  l8: string;                      // Skip-level (L8) manager
+  internId: string;
+  internName: string;
+  managerName: string;
+  l8: string;                           // Skip-level (L8) manager
   location: string;
   stage: InternStage;
-  startDate: string;               // ISO date: YYYY-MM-DD
-  graduationDate: string;          // ISO date: YYYY-MM-DD
+  startDate: string;                    // ISO date: YYYY-MM-DD
+  expectedGraduationDate: string;       // ISO date: YYYY-MM-DD
   inclinedStatus: InclinedStatus;
-  status: InternStatus;
-  hiringMeetingScheduled: boolean;
-  offerExtendedDate: string | null; // ISO date or null
+  programStatus: ProgramStatus;
+  hiringMeetingDate?: string;           // ISO date — past meeting
+  hiringMeetingUpcomingDate?: string;   // ISO date — scheduled future meeting
+  offerExtendedDate: string | null;     // ISO date or null
   headcountSource: string | null;
-  stageDwellDays: number;
+  lastPromotionDate?: string;           // ISO date: YYYY-MM-DD
 }
 
 export interface PerformanceReview {

@@ -8,7 +8,7 @@ export type {
   StageDistribution,
   InternStage,
   InclinedStatus,
-  InternStatus,
+  ProgramStatus,
   ReviewStatus,
   ConversionStatus,
   ActionSeverity,

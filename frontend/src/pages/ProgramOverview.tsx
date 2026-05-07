@@ -20,7 +20,7 @@ export default function ProgramOverview() {
   const locationCounts = useMemo<Record<string, number>>(() => {
     const counts: Record<string, number> = {};
     for (const intern of interns) {
-      if (intern.status === 'Active') {
+      if (intern.programStatus === 'Active') {
         counts[intern.location] = (counts[intern.location] ?? 0) + 1;
       }
     }

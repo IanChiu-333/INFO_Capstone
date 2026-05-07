@@ -25,8 +25,8 @@ export default function InternsTable({ interns, onRowClick }: Props) {
     if (!filterText.trim()) return interns;
     const q = filterText.toLowerCase();
     return interns.filter(i =>
-      i.name.toLowerCase().includes(q) ||
-      i.manager.toLowerCase().includes(q) ||
+      i.internName.toLowerCase().includes(q) ||
+      i.managerName.toLowerCase().includes(q) ||
       i.l8.toLowerCase().includes(q) ||
       i.location.toLowerCase().includes(q) ||
       i.stage.toLowerCase().includes(q)
@@ -80,13 +80,13 @@ export default function InternsTable({ interns, onRowClick }: Props) {
         </div>
       }
       columnDefinitions={[
-        { id: 'name',       header: 'Intern Name',     cell: (i: Intern) => i.name },
-        { id: 'manager',    header: 'Manager',         cell: (i: Intern) => i.manager },
-        { id: 'l8',         header: 'L8',              cell: (i: Intern) => i.l8 },
-        { id: 'location',   header: 'Location',        cell: (i: Intern) => i.location },
-        { id: 'stage',      header: 'Current Stage',   cell: (i: Intern) => i.stage },
-        { id: 'graduation', header: 'Graduation Date', cell: (i: Intern) => i.graduationDate },
-        { id: 'inclined',   header: 'Inclined Status', cell: (i: Intern) => i.inclinedStatus },
+        { id: 'internName',  header: 'Intern Name',     cell: (i: Intern) => i.internName },
+        { id: 'managerName', header: 'Manager',         cell: (i: Intern) => i.managerName },
+        { id: 'l8',          header: 'L8',              cell: (i: Intern) => i.l8 },
+        { id: 'location',    header: 'Location',        cell: (i: Intern) => i.location },
+        { id: 'stage',       header: 'Current Stage',   cell: (i: Intern) => i.stage },
+        { id: 'graduation',  header: 'Graduation Date', cell: (i: Intern) => i.expectedGraduationDate },
+        { id: 'inclined',    header: 'Inclined Status', cell: (i: Intern) => i.inclinedStatus },
       ]}
       items={pageItems}
       onRowClick={onRowClick ? ({ detail }) => onRowClick(detail.item) : undefined}

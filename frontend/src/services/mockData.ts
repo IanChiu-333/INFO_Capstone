@@ -54,8 +54,11 @@ export const MOCK_INTERNS: Intern[] = (() => {
       const inclinedOptions = ['Yes', 'No', 'Pending'] as const;
       const inclinedStatus  = inclinedOptions[idx % 3];
 
-      // ~20% missing hiring meeting (every 5th intern)
-      const hiringMeetingScheduled = idx % 5 !== 0;
+      // ~20% missing hiring meeting (every 5th intern has neither date set)
+      const hiringMeetingDate = idx % 5 !== 0 ? addMonthsToIso(startDate, 4) : undefined;
+
+      // Stage 2+ interns have a lastPromotionDate
+      const lastPromotionDate = stage !== 'Stage 1' ? addMonthsToIso(startDate, 10) : undefined;
 
       // Inclined with no offer extended: Yes + null (every 4th inclined-Yes)
       const offerExtendedDate =
@@ -68,24 +71,21 @@ export const MOCK_INTERNS: Intern[] = (() => {
       // ~12% no headcount source
       const headcountSource = idx % 8 === 0 ? null : `HC-${1000 + idx}`;
 
-      // Stage dwell 20–119 days; those > 90 trigger the action item
-      const stageDwellDays = 20 + (idx % 100);
-
       result.push({
-        id: `intern-${idx + 1}`,
-        name: `${FIRST_NAMES[(idx * 7) % FIRST_NAMES.length]} ${LAST_NAMES[(idx * 11) % LAST_NAMES.length]}`,
-        manager: MANAGERS[idx % MANAGERS.length],
+        internId: `intern-${idx + 1}`,
+        internName: `${FIRST_NAMES[(idx * 7) % FIRST_NAMES.length]} ${LAST_NAMES[(idx * 11) % LAST_NAMES.length]}`,
+        managerName: MANAGERS[idx % MANAGERS.length],
         l8: L8_MANAGERS[idx % L8_MANAGERS.length],
         location: LOCATIONS[idx % LOCATIONS.length],
         stage,
         startDate,
-        graduationDate,
+        expectedGraduationDate: graduationDate,
         inclinedStatus,
-        status: 'Active',
-        hiringMeetingScheduled,
+        programStatus: 'Active',
+        hiringMeetingDate,
+        lastPromotionDate,
         offerExtendedDate,
         headcountSource,
-        stageDwellDays,
       });
 
       idx++;
@@ -99,9 +99,9 @@ export const MOCK_PERFORMANCE_REVIEWS: PerformanceReview[] = MOCK_INTERNS
   .slice(0, 60)
   .map((intern, i) => ({
     id: `review-${i + 1}`,
-    internId: intern.id,
-    internName: intern.name,
-    manager: intern.manager,
+    internId: intern.internId,
+    internName: intern.internName,
+    manager: intern.managerName,
     scheduledDate: addMonthsToIso(intern.startDate, 3 + (i % 3)),
     completedDate: i % 3 === 0 ? null : addMonthsToIso(intern.startDate, 3 + (i % 3)),
     status: (['Completed','Scheduled','Overdue','Pending'] as const)[i % 4],
@@ -113,13 +113,13 @@ export const MOCK_FTE_CONVERSIONS: FTEConversionRecord[] = MOCK_INTERNS
   .filter(intern => intern.inclinedStatus === 'Yes')
   .map((intern, i) => ({
     id: `fte-${i + 1}`,
-    internId: intern.id,
-    internName: intern.name,
-    manager: intern.manager,
+    internId: intern.internId,
+    internName: intern.internName,
+    manager: intern.managerName,
     location: intern.location,
-    graduationDate: intern.graduationDate,
+    graduationDate: intern.expectedGraduationDate,
     conversionStatus: (['Converted','Pending','Declined','No Offer'] as const)[i % 4],
     offerDate: intern.offerExtendedDate,
-    startDateFTE: i % 4 === 0 ? null : addMonthsToIso(intern.graduationDate, 1),
+    startDateFTE: i % 4 === 0 ? null : addMonthsToIso(intern.expectedGraduationDate, 1),
     headcountSource: intern.headcountSource,
   }));
