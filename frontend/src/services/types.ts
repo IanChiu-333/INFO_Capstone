@@ -14,6 +14,7 @@ export interface Intern {
   stage: InternStage;
   startDate: string;                    // ISO date: YYYY-MM-DD
   expectedGraduationDate: string;       // ISO date: YYYY-MM-DD
+  costCenter: string;
   inclinedStatus: InclinedStatus;
   programStatus: ProgramStatus;
   hiringMeetingDate?: string;           // ISO date — past meeting
