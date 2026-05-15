@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import ColumnLayout from '@cloudscape-design/components/column-layout';
 import Box from '@cloudscape-design/components/box';
@@ -8,34 +9,32 @@ import Table from '@cloudscape-design/components/table';
 import type { TableProps } from '@cloudscape-design/components/table';
 import Pagination from '@cloudscape-design/components/pagination';
 import Icon from '@cloudscape-design/components/icon';
+import TextFilter from '@cloudscape-design/components/text-filter';
+import Link from '@cloudscape-design/components/link';
+import StatusIndicator from '@cloudscape-design/components/status-indicator';
 
 type EligibleInternRow = {
   id: string;
   internName: string;
   manager: string;
-  location: string;
-  currentStage: string;
-  graduationDate: string;
-  inclinedStatus: string;
 };
 
-const ELIGIBLE_INTERN_PLACEHOLDER_ITEMS: EligibleInternRow[] = Array.from({ length: 8 }, (_, i) => ({
+const ELIGIBLE_INTERN_PLACEHOLDER_ITEMS: EligibleInternRow[] = Array.from({ length: 5 }, (_, i) => ({
   id: `eligible-${i}`,
   internName: '--',
   manager: '--',
-  location: '--',
-  currentStage: '--',
-  graduationDate: '--',
-  inclinedStatus: '--',
 }));
+
+const reviewStatusCell = () => (
+  <StatusIndicator type="pending" wrapText={false}>
+    --
+  </StatusIndicator>
+);
 
 const ELIGIBLE_INTERN_COLUMNS: TableProps.ColumnDefinition<EligibleInternRow>[] = [
   { id: 'internName', header: 'Intern Name', cell: (item) => item.internName, isRowHeader: true },
   { id: 'manager', header: 'Manager', cell: (item) => item.manager },
-  { id: 'location', header: 'Location', cell: (item) => item.location },
-  { id: 'currentStage', header: 'Current Stage', cell: (item) => item.currentStage },
-  { id: 'graduationDate', header: 'Graduation Date', cell: (item) => item.graduationDate },
-  { id: 'inclinedStatus', header: 'Inclined Status', cell: (item) => item.inclinedStatus },
+  { id: 'reviewStatus', header: 'Performance Review Status', cell: reviewStatusCell },
 ];
 
 const metricCardBorder = {
@@ -87,128 +86,97 @@ const iconBadgeWarning = {
 } as const;
 
 export default function PerformanceReviews() {
+  const [filteringText, setFilteringText] = useState('');
+  const [selectedItems, setSelectedItems] = useState<EligibleInternRow[]>([]);
+
   return (
     <SpaceBetween size="l" direction="vertical">
-      <Container
-        header={
-          <Header
-            variant="h2"
-            description="May 2026 cycle planning and status"
-            actions={<Button variant="primary">Filter</Button>}
-          >
-            Performance Review Metrics
-          </Header>
-        }
-      >
-        <ColumnLayout columns={4}>
-          <Container variant="stacked" style={metricCardBorder}>
-            <SpaceBetween size="s" direction="vertical">
-              <Box fontSize="body-s" color="text-body-secondary">
-                Interns at each stage
-              </Box>
-              <Box fontSize="display-l" fontWeight="heavy">
-                --
-              </Box>
-              <Box fontSize="body-s" color="text-body-secondary">
-                Meets all criteria
-              </Box>
-            </SpaceBetween>
-          </Container>
-          <Container variant="stacked" style={metricCardBorder}>
-            <SpaceBetween size="s" direction="vertical">
-              <Box fontSize="body-s" color="text-body-secondary">
-                Avg. Time Each Stage
-              </Box>
-              <SpaceBetween size="xs" direction="horizontal" alignItems="end">
-                <Box fontSize="display-l" fontWeight="heavy">
-                  --
-                </Box>
-                <Box fontSize="body-m" color="text-status-success">
-                  + --
-                </Box>
-              </SpaceBetween>
-              <Box fontSize="body-s" color="text-body-secondary">
-                --
-              </Box>
-            </SpaceBetween>
-          </Container>
-          <Container variant="stacked" style={metricCardBorder}>
-            <SpaceBetween size="s" direction="vertical">
-              <Box fontSize="body-s" color="text-body-secondary">
-                Stage Dwell Time
-              </Box>
-              <Box fontSize="display-l" fontWeight="heavy">
-                --
-              </Box>
-              <Box fontSize="body-s" color="text-body-secondary">
-                --
-              </Box>
-            </SpaceBetween>
-          </Container>
-          <Container variant="stacked" style={metricCardBorder}>
-            <SpaceBetween size="s" direction="vertical">
-              <Box fontSize="body-s" color="text-body-secondary">
-                Promo Rate
-              </Box>
-              <Box fontSize="display-l" fontWeight="heavy">
-                --
-              </Box>
-              <Box fontSize="body-s" color="text-body-secondary">
-                Requires action
-              </Box>
-            </SpaceBetween>
-          </Container>
-        </ColumnLayout>
-      </Container>
+      <ColumnLayout columns={4} minColumnWidth={180}>
+        <Container variant="stacked" fitHeight style={metricCardBorder}>
+          <SpaceBetween size="s" direction="vertical">
+            <Box fontSize="body-s" color="text-body-secondary">
+              Interns Each Stage
+            </Box>
+            <Box fontSize="display-l" fontWeight="heavy">
+              --
+            </Box>
+            <Box fontSize="body-s" color="text-body-secondary">
+              Meets all criteria
+            </Box>
+          </SpaceBetween>
+        </Container>
+        <Container variant="stacked" fitHeight style={metricCardBorder}>
+          <SpaceBetween size="s" direction="vertical">
+            <Box fontSize="body-s" color="text-body-secondary">
+              Avg. Time Each Stage
+            </Box>
+            <Box fontSize="display-l" fontWeight="heavy">
+              --
+            </Box>
+            <Box fontSize="body-s" color="text-body-secondary">
+              --
+            </Box>
+          </SpaceBetween>
+        </Container>
+        <Container variant="stacked" fitHeight style={metricCardBorder}>
+          <SpaceBetween size="s" direction="vertical">
+            <Box fontSize="body-s" color="text-body-secondary">
+              Stage Dwell Time
+            </Box>
+            <Box fontSize="display-l" fontWeight="heavy">
+              --
+            </Box>
+            <Box fontSize="body-s" color="text-body-secondary">
+              --
+            </Box>
+          </SpaceBetween>
+        </Container>
+        <Container variant="stacked" fitHeight style={metricCardBorder}>
+          <SpaceBetween size="s" direction="vertical">
+            <Box fontSize="body-s" color="text-body-secondary">
+              Promotions
+            </Box>
+            <Box fontSize="display-l" fontWeight="heavy">
+              --
+            </Box>
+            <Box fontSize="body-s" color="text-body-secondary">
+              Interns requiring action
+            </Box>
+          </SpaceBetween>
+        </Container>
+      </ColumnLayout>
 
       <Container
         header={
           <Header
             variant="h2"
+            description="Tasks sorted by urgency"
             actions={
-              <SpaceBetween size="m" direction="horizontal" alignItems="center">
-                <SpaceBetween size="xxs" direction="horizontal" alignItems="center">
-                  <Box variant="span" fontSize="body-s" color="text-status-error" aria-hidden="true">
-                    ●
-                  </Box>
-                  <Box fontSize="body-s" color="text-body-secondary">
-                    Critical
-                  </Box>
-                </SpaceBetween>
-                <SpaceBetween size="xxs" direction="horizontal" alignItems="center">
-                  <Box variant="span" fontSize="body-s" color="text-status-warning" aria-hidden="true">
-                    ●
-                  </Box>
-                  <Box fontSize="body-s" color="text-body-secondary">
-                    Warning
-                  </Box>
-                </SpaceBetween>
-              </SpaceBetween>
+              <Button variant="primary" iconName="download">
+                Export report
+              </Button>
             }
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Icon name="status-negative" size="medium" ariaLabel="Risk detection" />
-              Risk Detection
-            </span>
+            Risk Detection
           </Header>
         }
       >
-        <ColumnLayout columns={4}>
+        <ColumnLayout columns={4} minColumnWidth={180}>
           <Container variant="stacked" fitHeight style={riskCriticalCardStyle}>
             <SpaceBetween size="m" direction="vertical">
               <Container variant="stacked" style={iconBadgeCritical}>
                 <Box textAlign="center">
-                  <Icon name="status-in-progress" variant="inverted" size="small" ariaLabel="Dwell time alert" />
+                  <Icon name="status-in-progress" variant="inverted" size="small" ariaLabel="Exceeding dwell time" />
                 </Box>
               </Container>
               <Box fontSize="heading-l" fontWeight="heavy" color="text-status-error">
                 --
               </Box>
               <Box fontSize="body-m" fontWeight="bold">
-                Interns exceeding dwell time
+                Exceeding Dwell time
               </Box>
               <Box fontSize="body-s" color="text-body-secondary">
-                Interns who remain in the dwell time period {'>'}90 days
+                Dwell time period {'>'}90 days
               </Box>
             </SpaceBetween>
           </Container>
@@ -216,14 +184,17 @@ export default function PerformanceReviews() {
             <SpaceBetween size="m" direction="vertical">
               <Container variant="stacked" style={iconBadgeCritical}>
                 <Box textAlign="center">
-                  <Icon name="status-negative" variant="inverted" size="small" ariaLabel="Mentor assignment" />
+                  <Icon name="status-negative" variant="inverted" size="small" ariaLabel="Without assigned mentor" />
                 </Box>
               </Container>
               <Box fontSize="heading-l" fontWeight="heavy" color="text-status-error">
                 --
               </Box>
               <Box fontSize="body-m" fontWeight="bold">
-                Interns without assigned mentor
+                Without Assigned Mentor
+              </Box>
+              <Box fontSize="body-s" color="text-body-secondary">
+                Requiring assignment
               </Box>
             </SpaceBetween>
           </Container>
@@ -231,14 +202,14 @@ export default function PerformanceReviews() {
             <SpaceBetween size="m" direction="vertical">
               <Container variant="stacked" style={iconBadgeWarning}>
                 <Box textAlign="center">
-                  <Icon name="user-profile" variant="inverted" size="small" ariaLabel="Warning" />
+                  <Icon name="status-in-progress" variant="inverted" size="small" ariaLabel="Stage dwell time" />
                 </Box>
               </Container>
               <Box fontSize="heading-l" fontWeight="heavy" color="text-status-warning">
                 --
               </Box>
               <Box fontSize="body-m" fontWeight="bold">
-                --
+                Stage Dwell Time
               </Box>
               <Box fontSize="body-s" color="text-body-secondary">
                 --
@@ -249,17 +220,17 @@ export default function PerformanceReviews() {
             <SpaceBetween size="m" direction="vertical">
               <Container variant="stacked" style={iconBadgeWarning}>
                 <Box textAlign="center">
-                  <Icon name="file" variant="inverted" size="small" ariaLabel="Warning" />
+                  <Icon name="file" variant="inverted" size="small" ariaLabel="Promotions" />
                 </Box>
               </Container>
               <Box fontSize="heading-l" fontWeight="heavy" color="text-status-warning">
                 --
               </Box>
               <Box fontSize="body-m" fontWeight="bold">
-                --
+                Promotions
               </Box>
               <Box fontSize="body-s" color="text-body-secondary">
-                --
+                Interns requiring action
               </Box>
             </SpaceBetween>
           </Container>
@@ -270,11 +241,25 @@ export default function PerformanceReviews() {
         header={
           <Header
             variant="h2"
-            description="Filters: Start date ≤ Jan 1, 2026 • Stage 2+ • ≥ 6 months until graduation"
+            counter="(--)"
+            info={
+              <Link href="#" variant="info" onFollow={(e) => e.preventDefault()}>
+                Info
+              </Link>
+            }
+            description="Track hiring meetings, offers, and acceptances"
             actions={
-              <Button variant="primary" iconName="play">
-                Generate Eligible List
-              </Button>
+              <SpaceBetween size="s" direction="horizontal" alignItems="center">
+                <Box fontSize="body-s" color="text-body-secondary">
+                  -- total
+                </Box>
+                <Button variant="normal" iconName="add-plus">
+                  Add intern
+                </Button>
+                <Button variant="primary" iconName="download">
+                  Export table
+                </Button>
+              </SpaceBetween>
             }
           >
             Eligible Interns
@@ -286,44 +271,41 @@ export default function PerformanceReviews() {
           trackBy="id"
           columnDefinitions={ELIGIBLE_INTERN_COLUMNS}
           items={ELIGIBLE_INTERN_PLACEHOLDER_ITEMS}
-          footer={
+          selectionType="multi"
+          selectedItems={selectedItems}
+          onSelectionChange={({ detail }) => setSelectedItems(detail.selectedItems)}
+          sortingDisabled
+          filter={
             <SpaceBetween size="m" direction="horizontal" alignItems="center">
-              <Box fontSize="body-s" color="text-body-secondary">
-                Showing -- of -- interns • Click any row to view full details
-              </Box>
-              <Pagination
-                disabled
-                currentPageIndex={1}
-                pagesCount={5}
-                ariaLabels={{
-                  paginationLabel: 'Eligible interns table pagination',
-                  previousPageLabel: 'Previous page',
-                  nextPageLabel: 'Next page',
-                }}
+              <TextFilter
+                filteringText={filteringText}
+                onChange={({ detail }) => setFilteringText(detail.filteringText)}
+                filteringPlaceholder="Enter value"
+                filteringAriaLabel="Filter eligible interns"
               />
+              <Box fontSize="body-s" color="text-body-secondary">
+                -- Matches
+              </Box>
             </SpaceBetween>
           }
+          pagination={
+            <Pagination
+              disabled
+              currentPageIndex={1}
+              pagesCount={5}
+              ariaLabels={{
+                paginationLabel: 'Eligible interns table pagination',
+                previousPageLabel: 'Previous page',
+                nextPageLabel: 'Next page',
+              }}
+            />
+          }
+          footer={
+            <Box fontSize="body-s" color="text-body-secondary">
+              Showing -- of -- interns • Click any row to view full details
+            </Box>
+          }
         />
-      </Container>
-
-      <Container
-        header={
-          <Header
-            variant="h2"
-            description="Filters: Start date ≤ Jan 1, 2026 • Stage 2+ • ≥ 6 months until graduation"
-            actions={
-              <Button variant="primary" iconName="download">
-                Export Calendar
-              </Button>
-            }
-          >
-            PR Calendar
-          </Header>
-        }
-      >
-        <Container variant="stacked" style={metricCardBorder}>
-          <Box padding="xxl" />
-        </Container>
       </Container>
     </SpaceBetween>
   );

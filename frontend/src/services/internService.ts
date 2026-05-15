@@ -22,6 +22,9 @@ import {
 export interface InternService {
   getInterns(): Promise<Intern[]>;
   getIntern(id: string): Promise<Intern | null>;
+  addIntern(intern: Intern): Promise<Intern>;
+  updateIntern(intern: Intern): Promise<Intern>;
+  deleteIntern(id: string): Promise<void>;
   getMetrics(): Promise<ProgramMetrics>;
   getActionItems(): Promise<ActionItem[]>;
   getEnrollmentTrend(): Promise<EnrollmentDataPoint[]>;
@@ -30,11 +33,28 @@ export interface InternService {
   getFTEConversions(): Promise<FTEConversionRecord[]>;
 }
 
+let mockInternsState = [...MOCK_INTERNS];
+
 export const mockInternService: InternService = {
-  getInterns: () => Promise.resolve(MOCK_INTERNS),
+  getInterns: () => Promise.resolve([...mockInternsState]),
 
   getIntern: (id) =>
-    Promise.resolve(MOCK_INTERNS.find(i => i.internId === id) ?? null),
+    Promise.resolve(mockInternsState.find(i => i.internId === id) ?? null),
+
+  addIntern: (intern) => {
+    mockInternsState = [intern, ...mockInternsState];
+    return Promise.resolve(intern);
+  },
+
+  updateIntern: (intern) => {
+    mockInternsState = mockInternsState.map(i => i.internId === intern.internId ? intern : i);
+    return Promise.resolve(intern);
+  },
+
+  deleteIntern: (id) => {
+    mockInternsState = mockInternsState.filter(i => i.internId !== id);
+    return Promise.resolve();
+  },
 
   getMetrics: () =>
     Promise.resolve(computeMetrics(MOCK_INTERNS)),

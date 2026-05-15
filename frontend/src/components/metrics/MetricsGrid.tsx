@@ -1,16 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ProgramMetrics } from '../../services';
 import styles from './MetricsGrid.module.css';
 
 interface Props {
   metrics: ProgramMetrics;
   locationCounts: Record<string, number>;
+  costCenterCounts: Record<string, number>;
 }
 
-export default function MetricsGrid({ metrics, locationCounts }: Props) {
-  const locations = Object.keys(locationCounts).sort();
-  const [selectedLocation, setSelectedLocation]     = useState(locations[0] ?? '');
-  const [selectedCostCenter, setSelectedCostCenter] = useState(locations[0] ?? '');
+export default function MetricsGrid({ metrics, locationCounts, costCenterCounts }: Props) {
+  const locations   = Object.keys(locationCounts).sort();
+  const costCenters = Object.keys(costCenterCounts).sort();
+  const [selectedLocation,   setSelectedLocation]   = useState(locations[0]   ?? '');
+  const [selectedCostCenter, setSelectedCostCenter] = useState(costCenters[0] ?? '');
+
+  useEffect(() => {
+    if (costCenters.length > 0 && !costCenters.includes(selectedCostCenter)) {
+      setSelectedCostCenter(costCenters[0]);
+    }
+  }, [costCenters, selectedCostCenter]);
 
   return (
     <div className={styles.grid}>
@@ -75,12 +83,12 @@ export default function MetricsGrid({ metrics, locationCounts }: Props) {
             onChange={e => setSelectedCostCenter(e.target.value)}
             aria-label="Select cost center"
           >
-            {locations.map(loc => (
-              <option key={loc} value={loc}>{loc}</option>
+            {costCenters.map(cc => (
+              <option key={cc} value={cc}>{cc}</option>
             ))}
           </select>
         </div>
-        <span className={styles.cardValue}>{locationCounts[selectedCostCenter] ?? 0}</span>
+        <span className={styles.cardValue}>{costCenterCounts[selectedCostCenter] ?? 0}</span>
         <span className={styles.cardSub}>Number of interns per center</span>
       </div>
 
@@ -96,7 +104,7 @@ export default function MetricsGrid({ metrics, locationCounts }: Props) {
         <div className={styles.cardTop}>
           <span className={styles.cardTitle}>Post-program Retention</span>
         </div>
-        <span className={styles.cardValue}>{metrics.postProgramRetentionRate}%</span>
+        <span className={styles.cardValue}>--</span>
         <span className={styles.cardSub}>Last 6 month average</span>
       </div>
     </div>
