@@ -86,8 +86,8 @@ export class BackendStack extends cdk.Stack {
     const commsInt = new apigateway.LambdaIntegration(commsLambda);
 
     // ── /interns ────────────────────────────────────────────────────────────────
-    // GET  ?stage=&location=&programStatus=&graduationCohort=&manager=&mentor=
-    //      &search=&riskFlags=&reviewEligibility=May|October&upcomingMeetings=true&withRiskFlags=true
+    // GET  ?stage=&location=&programStatus=&manager=&mentor=
+    //      &search=&riskFlags=&upcomingMeetings=true&withRiskFlags=true&year=
     // POST (create intern)
     const interns = api.root.addResource("interns");
     interns.addMethod("GET", internsInt);
@@ -107,11 +107,11 @@ export class BackendStack extends cdk.Stack {
     metrics.addResource("overview").addMethod("GET", metricsInt);
 
     // GET /metrics/performance-reviews — by stage, avg time per stage, dwell distribution,
-    //   approaching promotion, risk summary, review eligibility (May + October)
+    //   approaching promotion, risk summary
     metrics.addResource("performance-reviews").addMethod("GET", metricsInt);
 
-    // GET /metrics/fte-conversions — graduating by cohort, hiring→offer timeline,
-    //   incline breakdown, offer acceptance rate, offer ready page, upcoming meetings
+    // GET /metrics/fte-conversions — graduating by cohort, incline breakdown,
+    //   offer acceptance rate (via FTE Offer Status), upcoming hiring meetings
     metrics.addResource("fte-conversions").addMethod("GET", metricsInt);
 
     // ── /communications ──────────────────────────────────────────────────────────

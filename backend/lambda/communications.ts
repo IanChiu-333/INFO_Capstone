@@ -19,7 +19,7 @@ function err(code: number, msg: string): APIGatewayProxyResult {
 }
 
 function fillTemplate(template: string, fields: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => fields[key] ?? `{{${key}}}`);
+  return template.replace(/\{\{([^}]+)\}\}/g, (_, key) => fields[key] ?? `{{${key}}}`);
 }
 
 // ─── Template Library ─────────────────────────────────────────────────────────
@@ -29,16 +29,16 @@ const TEMPLATES: Record<string, { id: string; name: string; category: string; su
     id: "fte-hiring-prep",
     name: "Hiring Meeting Preparation",
     category: "FTE Conversion",
-    subject: "Upcoming Hiring Meeting for {{firstAndLastName}}",
-    body: `Hi {{mentorContact}} and {{managerContact}},
+    subject: "Upcoming Hiring Meeting for {{First and Last Name}}",
+    body: `Hi {{Mentor Contact}} and {{Manager Contact}},
 
-This is a reminder that the hiring meeting for {{firstAndLastName}} is scheduled for {{hiringMeetingDate}}.
+This is a reminder that the hiring meeting for {{First and Last Name}} is scheduled for {{Hiring Meeting Date}}.
 
 Intern Details:
-- Name: {{firstAndLastName}}
-- Stage: {{stage}}
-- Location: {{siteLocation}}
-- Start Date: {{startDate}}
+- Name: {{First and Last Name}}
+- Stage: {{Stage}}
+- Location: {{Site Location}}
+- Start Date: {{Start Date}}
 
 Please come prepared with performance feedback and any relevant documentation.
 
@@ -50,13 +50,13 @@ JDP Program Team`,
     name: "Full-Time Expectations Communication",
     category: "FTE Conversion",
     subject: "Your Full-Time Offer with Amazon — Next Steps",
-    body: `Hi {{firstAndLastName}},
+    body: `Hi {{First and Last Name}},
 
 Congratulations on your strong performance in the Junior Developer Program!
 
-We'd like to share information about transitioning to a full-time role at Amazon. Your expected graduation is {{gradDate}} ({{graduationCohort}} cohort).
+We'd like to share information about transitioning to a full-time role at Amazon. Your expected graduation is {{Grad Date}}.
 
-Please connect with your manager {{managerContact}} and mentor {{mentorContact}} for next steps.
+Please connect with your manager {{Manager Contact}} and mentor {{Mentor Contact}} for next steps.
 
 Best regards,
 JDP Program Team`,
@@ -65,10 +65,10 @@ JDP Program Team`,
     id: "fte-offer-extension",
     name: "Offer Extension Notification",
     category: "FTE Conversion",
-    subject: "Full-Time Offer Extended — {{firstAndLastName}}",
-    body: `Hi {{managerContact}},
+    subject: "Full-Time Offer Extended — {{First and Last Name}}",
+    body: `Hi {{Manager Contact}},
 
-A full-time offer has been extended to {{firstAndLastName}} from the JDP program.
+A full-time offer has been extended to {{First and Last Name}} from the JDP program.
 
 Please follow up to ensure they have everything needed to make their decision.
 
@@ -79,10 +79,10 @@ JDP Program Team`,
     id: "fte-offer-ready-followup",
     name: "Offer Ready Wiki Follow-Up",
     category: "FTE Conversion",
-    subject: "Follow-Up: {{firstAndLastName}} on Offer Ready Wiki",
-    body: `Hi {{managerContact}},
+    subject: "Follow-Up: {{First and Last Name}} on Offer Ready Wiki",
+    body: `Hi {{Manager Contact}},
 
-We noticed {{firstAndLastName}} has been on the Offer Ready Wiki Page for an extended period. Please provide an update on their offer status.
+We noticed {{First and Last Name}} has been on the Offer Ready Wiki Page for an extended period. Please provide an update on their offer status.
 
 Best regards,
 JDP Program Team`,
@@ -91,10 +91,10 @@ JDP Program Team`,
     id: "perf-may-review-prep",
     name: "May Review Preparation",
     category: "Performance Review",
-    subject: "May Performance Review — {{firstAndLastName}}",
-    body: `Hi {{mentorContact}} and {{managerContact}},
+    subject: "May Performance Review — {{First and Last Name}}",
+    body: `Hi {{Mentor Contact}} and {{Manager Contact}},
 
-The May performance review cycle is approaching for {{firstAndLastName}} ({{stage}}, {{siteLocation}}).
+The May performance review cycle is approaching for {{First and Last Name}} ({{Stage}}, {{Site Location}}).
 
 Please submit your review feedback by the deadline. Contact your program manager with any questions.
 
@@ -105,10 +105,10 @@ JDP Program Team`,
     id: "perf-october-review-prep",
     name: "October Review Preparation",
     category: "Performance Review",
-    subject: "October Performance Review — {{firstAndLastName}}",
-    body: `Hi {{mentorContact}} and {{managerContact}},
+    subject: "October Performance Review — {{First and Last Name}}",
+    body: `Hi {{Mentor Contact}} and {{Manager Contact}},
 
-The October performance review cycle is approaching for {{firstAndLastName}} ({{stage}}, {{siteLocation}}).
+The October performance review cycle is approaching for {{First and Last Name}} ({{Stage}}, {{Site Location}}).
 
 Please submit your review feedback by the deadline.
 
@@ -119,10 +119,10 @@ JDP Program Team`,
     id: "perf-check-in",
     name: "At-Risk Intern Check-In",
     category: "Performance Review",
-    subject: "Check-In Request for {{firstAndLastName}}",
-    body: `Hi {{managerContact}},
+    subject: "Check-In Request for {{First and Last Name}}",
+    body: `Hi {{Manager Contact}},
 
-We'd like to schedule a check-in regarding {{firstAndLastName}}'s progress in {{stage}}. They have been flagged for follow-up.
+We'd like to schedule a check-in regarding {{First and Last Name}}'s progress in {{Stage}}. They have been flagged for follow-up.
 
 Please reach out to the program team at your earliest convenience.
 
@@ -133,10 +133,10 @@ JDP Program Team`,
     id: "perf-mentor-assignment",
     name: "Mentor Assignment Notification",
     category: "Performance Review",
-    subject: "Mentor Assignment Update for {{firstAndLastName}}",
-    body: `Hi {{managerContact}},
+    subject: "Mentor Assignment Update for {{First and Last Name}}",
+    body: `Hi {{Manager Contact}},
 
-This is a notification that {{mentorContact}} has been assigned as the mentor for {{firstAndLastName}}.
+This is a notification that {{Mentor Contact}} has been assigned as the mentor for {{First and Last Name}}.
 
 Please ensure introductions are made and the mentorship plan is in place.
 
@@ -147,10 +147,10 @@ JDP Program Team`,
     id: "perf-pip",
     name: "Performance Improvement Plan Notification",
     category: "Performance Review",
-    subject: "Performance Improvement Plan — {{firstAndLastName}}",
-    body: `Hi {{managerContact}} and {{mentorContact}},
+    subject: "Performance Improvement Plan — {{First and Last Name}}",
+    body: `Hi {{Manager Contact}} and {{Mentor Contact}},
 
-A Performance Improvement Plan has been initiated for {{firstAndLastName}}. Please review the plan details and provide support as outlined.
+A Performance Improvement Plan has been initiated for {{First and Last Name}}. Please review the plan details and provide support as outlined.
 
 Best regards,
 JDP Program Team`,
@@ -160,9 +160,9 @@ JDP Program Team`,
     name: "General Program Update",
     category: "General",
     subject: "JDP Program Update",
-    body: `Hi {{managerContact}},
+    body: `Hi {{Manager Contact}},
 
-This is a general update from the Junior Developer Program regarding {{firstAndLastName}} ({{stage}}, {{siteLocation}}).
+This is a general update from the Junior Developer Program regarding {{First and Last Name}} ({{Stage}}, {{Site Location}}).
 
 Please contact your program manager for details.
 
@@ -173,10 +173,10 @@ JDP Program Team`,
     id: "general-manager-followup",
     name: "Manager Follow-Up",
     category: "General",
-    subject: "Follow-Up Request: {{firstAndLastName}}",
-    body: `Hi {{managerContact}},
+    subject: "Follow-Up Request: {{First and Last Name}}",
+    body: `Hi {{Manager Contact}},
 
-We'd like to follow up regarding {{firstAndLastName}}'s progress and current status in the program.
+We'd like to follow up regarding {{First and Last Name}}'s progress and current status in the program.
 
 Please respond at your earliest convenience.
 
@@ -227,13 +227,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       const bodyTmpl = customBody ?? tmpl?.body;
       if (!subjectTmpl || !bodyTmpl) return err(400, "templateId or customSubject+customBody required");
 
-      const results: { firstAndLastName: string; status: string }[] = [];
+      const results: { "First and Last Name": string; status: string }[] = [];
 
       for (const intern of recipients) {
         const fields = intern as Record<string, string>;
-        const toAddresses = [intern.managerEmail, intern.mentorEmail].filter(Boolean) as string[];
+        const toAddresses = [intern["Manager Email"], intern["Mentor Email"]].filter(Boolean) as string[];
         if (!toAddresses.length) {
-          results.push({ firstAndLastName: intern.firstAndLastName, status: "skipped — no recipients" });
+          results.push({ "First and Last Name": intern["First and Last Name"], status: "skipped — no recipients" });
           continue;
         }
 
@@ -247,7 +247,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
             },
           })
         );
-        results.push({ firstAndLastName: intern.firstAndLastName, status: "sent" });
+        results.push({ "First and Last Name": intern["First and Last Name"], status: "sent" });
       }
 
       await ddb.send(
@@ -258,7 +258,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
             timestamp: new Date().toISOString(),
             templateId: tid ?? "custom",
             recipientCount: recipients.length,
-            recipients: recipients.map((i: Record<string, string>) => i.firstAndLastName),
+            recipients: recipients.map((i: Record<string, string>) => i["First and Last Name"]),
             results,
           },
         })

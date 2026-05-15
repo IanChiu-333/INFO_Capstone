@@ -13,7 +13,6 @@ const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
-// Stage dwell thresholds in months
 const STAGE_THRESHOLDS: Record<string, { yellow: number; red: number }> = {
   "Stage 1": { yellow: 10, red: 12 },
   "Stage 2": { yellow: 10, red: 12 },
@@ -33,16 +32,16 @@ function monthsBetween(dateStr: string, toDate = new Date()): number {
 }
 
 function getStageStartDate(intern: Record<string, unknown>): string | undefined {
-  const stage = intern.stage as string;
-  if (stage === "Stage 3") return (intern.stage3PromoDate ?? intern.stage2PromoDate ?? intern.startDate) as string | undefined;
-  if (stage === "Stage 2") return (intern.stage2PromoDate ?? intern.startDate) as string | undefined;
-  return intern.startDate as string | undefined;
+  const stage = intern["Stage"] as string;
+  if (stage === "Stage 3") return (intern["Stage 3 Promo Date"] ?? intern["Stage 2 Promo Date"] ?? intern["Start Date"]) as string | undefined;
+  if (stage === "Stage 2") return (intern["Stage 2 Promo Date"] ?? intern["Start Date"]) as string | undefined;
+  return intern["Start Date"] as string | undefined;
 }
 
 function computeRiskFlags(intern: Record<string, unknown>): string[] {
   const flags: string[] = [];
   const now = new Date();
-  const stage = intern.stage as string;
+  const stage = intern["Stage"] as string;
   const thresholds = STAGE_THRESHOLDS[stage];
   const stageStartDate = getStageStartDate(intern);
 
@@ -52,7 +51,7 @@ function computeRiskFlags(intern: Record<string, unknown>): string[] {
     if (monthsInStage > thresholds.red) flags.push("promotion_overdue");
   }
 
-  if (!intern.mentorContact || (intern.mentorContact as string).trim() === "") {
+  if (!intern["Mentor Contact"] || (intern["Mentor Contact"] as string).trim() === "") {
     flags.push("no_mentor");
   }
 
@@ -70,24 +69,17 @@ function applyFilters(
   items: Record<string, unknown>[],
   params: Record<string, string | undefined>
 ): Record<string, unknown>[] {
-  const {
-    stage, location, programStatus, graduationCohort,
-    manager, mentor, search, riskFlags, reviewEligibility, year,
-  } = params;
+  const { stage, location, programStatus, manager, mentor, search, riskFlags, year } = params;
 
   let result = items;
 
-  if (stage) result = result.filter((i) => i.stage === stage);
-  if (location) result = result.filter((i) => i.siteLocation === location);
-  if (programStatus) result = result.filter((i) => i.programStatus === programStatus);
-  if (graduationCohort) result = result.filter((i) => i.graduationCohort === graduationCohort);
-  if (manager) result = result.filter((i) => (i.managerContact as string)?.toLowerCase().includes(manager.toLowerCase()));
-  if (mentor) result = result.filter((i) => (i.mentorContact as string)?.toLowerCase().includes(mentor.toLowerCase()));
-  if (search) result = result.filter((i) => (i.firstAndLastName as string)?.toLowerCase().includes(search.toLowerCase()));
-  if (year) result = result.filter((i) => i.startDate && (i.startDate as string).startsWith(year));
-
-  if (reviewEligibility === "May") result = result.filter((i) => i.reviewEligibilityMay === "Yes");
-  if (reviewEligibility === "October") result = result.filter((i) => i.reviewEligibilityOctober === "Yes");
+  if (stage) result = result.filter((i) => i["Stage"] === stage);
+  if (location) result = result.filter((i) => i["Site Location"] === location);
+  if (programStatus) result = result.filter((i) => i["Program Status"] === programStatus);
+  if (manager) result = result.filter((i) => (i["Manager Contact"] as string)?.toLowerCase().includes(manager.toLowerCase()));
+  if (mentor) result = result.filter((i) => (i["Mentor Contact"] as string)?.toLowerCase().includes(mentor.toLowerCase()));
+  if (search) result = result.filter((i) => (i["First and Last Name"] as string)?.toLowerCase().includes(search.toLowerCase()));
+  if (year) result = result.filter((i) => i["Start Date"] && (i["Start Date"] as string).startsWith(year));
 
   if (riskFlags) {
     const requestedFlags = riskFlags.split(",");
@@ -114,10 +106,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       if (params.upcomingMeetings === "true") {
         const now = new Date().toISOString().split("T")[0];
         items = items
-          .filter((i) => i.hiringMeetingDate && (i.hiringMeetingDate as string) >= now)
-          .sort((a, b) =>
-            (a.hiringMeetingDate as string).localeCompare(b.hiringMeetingDate as string)
-          );
+          .filter((i) => i["Hiring Meeting Date"] && (i["Hiring Meeting Date"] as string) >= now)
+          .sort((a, b) => (a["Hiring Meeting Date"] as string).localeCompare(b["Hiring Meeting Date"] as string));
         return ok(items);
       }
 
@@ -132,7 +122,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // GET /interns/{employeeId}
     if (method === "GET" && employeeId) {
-      const result = await ddb.send(new GetCommand({ TableName: TABLE_NAME, Key: { employeeId } }));
+      const result = await ddb.send(new GetCommand({ TableName: TABLE_NAME, Key: { "Employee ID": employeeId } }));
       if (!result.Item) return err(404, "Intern not found");
       return ok({ ...result.Item, _riskFlags: computeRiskFlags(result.Item as Record<string, unknown>) });
     }
@@ -140,7 +130,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // POST /interns
     if (method === "POST") {
       const body = JSON.parse(event.body ?? "{}");
-      if (!body.employeeId) return err(400, "employeeId is required");
+      if (!body["Employee ID"]) return err(400, "Employee ID is required");
       await ddb.send(new PutCommand({ TableName: TABLE_NAME, Item: body }));
       return ok(body);
     }
@@ -158,7 +148,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       const result = await ddb.send(
         new UpdateCommand({
           TableName: TABLE_NAME,
-          Key: { employeeId },
+          Key: { "Employee ID": employeeId },
           UpdateExpression: updateExpr,
           ExpressionAttributeNames: exprNames,
           ExpressionAttributeValues: exprValues,
@@ -170,7 +160,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // DELETE /interns/{employeeId}
     if (method === "DELETE" && employeeId) {
-      await ddb.send(new DeleteCommand({ TableName: TABLE_NAME, Key: { employeeId } }));
+      await ddb.send(new DeleteCommand({ TableName: TABLE_NAME, Key: { "Employee ID": employeeId } }));
       return ok({ deleted: employeeId });
     }
 

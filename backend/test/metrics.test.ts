@@ -31,59 +31,48 @@ function event(resource: string): APIGatewayProxyEvent {
   };
 }
 
-// Covers all metric types: active, graduated, early exit, with risk flags, FTE data
+// Covers all metric types: active, inactive with exit, with risk flags, FTE data
 const SAMPLE_INTERNS = [
   {
-    employeeId: 'i1',
-    firstAndLastName: 'Alice',
-    programStatus: 'Active',
-    stage: 'Stage 1',
-    siteLocation: 'Seattle',
-    startDate: '2025-10-01',
-    stage2PromoDate: '2025-12-01',
-    managerContact: 'Bob',
-    mentorContact: 'Carol',
-    reviewEligibilityMay: 'Yes',
-    reviewEligibilityOctober: 'No',
-    hiringMeetingDate: '2027-06-01',
+    "Employee ID": 'i1',
+    "First and Last Name": 'Alice',
+    "Program Status": 'Active',
+    "Stage": 'Stage 1',
+    "Site Location": 'Seattle',
+    "Start Date": '2025-10-01',
+    "Stage 2 Promo Date": '2025-12-01',
+    "Manager Contact": 'Bob',
+    "Mentor Contact": 'Carol',
+    "Hiring Meeting Date": '2027-06-01',
   },
   {
-    employeeId: 'i2',
-    firstAndLastName: 'Dave',
-    programStatus: 'Graduated',
-    stage: 'Stage 3',
-    siteLocation: 'New York',
-    startDate: '2022-01-01',
-    exitDate: '2025-01-01',
-    stage3PromoDate: '2024-06-01',
-    managerContact: 'Eve',
-    mentorContact: 'Frank',
-    postProgramStatus: 'Active FTE',
-    graduationCohort: 'May',
-    gradDate: '2026-05-01',
-    currentLevel: 'L5',
-    hiringMeetingDate: '2024-11-01',
-    offerExtendedDate: '2024-12-01',
-    offerAccepted: 'Yes',
-    hiringMeetingOutcome: 'Inclined',
-    reviewEligibilityMay: 'No',
-    reviewEligibilityOctober: 'Yes',
-    dateAddedToOfferReadyWikiPage: '2024-10-01',
-    dateRemovedFromOfferReadyWikiPage: '2024-12-01',
+    "Employee ID": 'i2',
+    "First and Last Name": 'Dave',
+    "Program Status": 'Inactive',
+    "Stage": 'Stage 3',
+    "Site Location": 'New York',
+    "Start Date": '2022-01-01',
+    "Exit Date": '2025-01-01',
+    "Stage 3 Promo Date": '2024-06-01',
+    "Manager Contact": 'Eve',
+    "Mentor Contact": 'Frank',
+    "Grad Date": '2026-05-01',
+    "Hiring Meeting Date": '2024-11-01',
+    "Hiring Meeting Outcome": 'Inclined',
+    "FTE Offer Status": 'Accepted',
   },
   {
-    employeeId: 'i3',
-    firstAndLastName: 'Grace',
-    programStatus: 'Early Exit',
-    stage: 'Stage 2',
-    siteLocation: 'Seattle',
-    startDate: '2023-01-01',
-    exitDate: '2024-06-01',
-    regrettedExit: 'Yes',
-    managerContact: 'Henry',
-    mentorContact: '',
-    stage2PromoDate: '2021-01-01',     // old → exceeding_dwell_time
-    mentorChangeLog: ['date1', 'date2'], // 2 entries → mentor_changes
+    "Employee ID": 'i3',
+    "First and Last Name": 'Grace',
+    "Program Status": 'Inactive',
+    "Stage": 'Stage 2',
+    "Site Location": 'Seattle',
+    "Start Date": '2023-01-01',
+    "Exit Date": '2024-06-01',
+    "Manager Contact": 'Henry',
+    "Mentor Contact": '',
+    "Stage 2 Promo Date": '2021-01-01',
+    mentorChangeLog: ['date1', 'date2'],
   },
 ];
 
@@ -101,8 +90,7 @@ describe('GET /metrics/overview', () => {
     const body = JSON.parse(res.body);
     expect(body.totalByStatus).toMatchObject({
       Active: 1,
-      Graduated: 1,
-      'Early Exit': 1,
+      Inactive: 2,
     });
   });
 
@@ -110,7 +98,7 @@ describe('GET /metrics/overview', () => {
     const res = await handler(event('/metrics/overview'));
     const { byLocation } = JSON.parse(res.body);
     expect(byLocation.Seattle).toBe(1);
-    expect(byLocation['New York']).toBeUndefined(); // Dave is Graduated, not Active
+    expect(byLocation['New York']).toBeUndefined(); // Dave is Inactive, not Active
   });
 
   test('returns joiners and leavers by month arrays', async () => {
@@ -130,21 +118,6 @@ describe('GET /metrics/overview', () => {
     expect(netGrowthByMonth[0]).toHaveProperty('net');
   });
 
-  test('calculates post-program retention for graduated interns', async () => {
-    const res = await handler(event('/metrics/overview'));
-    const { postProgramRetention } = JSON.parse(res.body);
-    expect(postProgramRetention.total).toBe(1);    // Dave is the only Graduated
-    expect(postProgramRetention.retained).toBe(1); // Dave has postProgramStatus 'Active FTE'
-    expect(postProgramRetention.percentage).toBe(100);
-  });
-
-  test('calculates regretted vs unregretted attrition', async () => {
-    const res = await handler(event('/metrics/overview'));
-    const { regrettedAttrition, unregrettedAttrition } = JSON.parse(res.body);
-    expect(regrettedAttrition.count).toBe(1);   // Grace
-    expect(unregrettedAttrition.count).toBe(0);
-  });
-
   test('returns average time in program', async () => {
     const res = await handler(event('/metrics/overview'));
     const { avgTimeInProgramMonths } = JSON.parse(res.body);
@@ -161,7 +134,7 @@ describe('GET /metrics/performance-reviews', () => {
     expect(res.statusCode).toBe(200);
     const { byStage } = JSON.parse(res.body);
     expect(byStage['Stage 1']).toBe(1); // Alice
-    expect(byStage['Stage 2']).toBeUndefined(); // Grace is Early Exit, not Active
+    expect(byStage['Stage 2']).toBeUndefined(); // Grace is Inactive, not Active
   });
 
   test('returns dwell distribution with green/yellow/red buckets for each stage', async () => {
@@ -174,13 +147,6 @@ describe('GET /metrics/performance-reviews', () => {
     }
   });
 
-  test('returns review eligibility counts', async () => {
-    const res = await handler(event('/metrics/performance-reviews'));
-    const { reviewEligibility } = JSON.parse(res.body);
-    expect(reviewEligibility.may.count).toBe(1);     // Alice
-    expect(reviewEligibility.october.count).toBe(1); // Dave
-  });
-
   test('returns risk summary with flagged interns', async () => {
     const res = await handler(event('/metrics/performance-reviews'));
     const { riskSummary } = JSON.parse(res.body);
@@ -188,7 +154,7 @@ describe('GET /metrics/performance-reviews', () => {
     expect(Array.isArray(riskSummary.flaggedInterns)).toBe(true);
     // Alice (active, has mentor, not exceeding dwell) should NOT be flagged
     const aliceFlagged = riskSummary.flaggedInterns.find(
-      (i: { employeeId: string }) => i.employeeId === 'i1'
+      (i: Record<string, unknown>) => i["Employee ID"] === 'i1'
     );
     expect(aliceFlagged).toBeUndefined();
   });
@@ -216,41 +182,25 @@ describe('GET /metrics/fte-conversions', () => {
     expect(typeof graduatingByCohort).toBe('object');
   });
 
-  test('returns avg days from hiring meeting to offer', async () => {
-    const res = await handler(event('/metrics/fte-conversions'));
-    const { avgDaysHiringToOffer } = JSON.parse(res.body);
-    // Dave has both dates: 2024-11-01 → 2024-12-01 = 30 days
-    expect(avgDaysHiringToOffer.overall).toBe(30);
-  });
-
   test('returns incline breakdown from hiring meeting outcomes', async () => {
     const res = await handler(event('/metrics/fte-conversions'));
     const { inclineBreakdown } = JSON.parse(res.body);
     expect(inclineBreakdown.Inclined).toBe(1); // Dave
   });
 
-  test('returns offer acceptance rate', async () => {
+  test('returns offer acceptance rate using FTE Offer Status', async () => {
     const res = await handler(event('/metrics/fte-conversions'));
     const { offerAcceptance } = JSON.parse(res.body);
-    expect(offerAcceptance.extended).toBe(1);
-    expect(offerAcceptance.accepted).toBe(1);
+    expect(offerAcceptance.extended).toBe(1); // Dave: Accepted (not "Not Extended")
+    expect(offerAcceptance.accepted).toBe(1); // Dave: Accepted
     expect(offerAcceptance.rate).toBe(100);
-  });
-
-  test('returns offer ready page data sorted by days on page descending', async () => {
-    const res = await handler(event('/metrics/fte-conversions'));
-    const { offerReadyPage } = JSON.parse(res.body);
-    expect(offerReadyPage.interns).toHaveLength(1);
-    expect(offerReadyPage.interns[0].employeeId).toBe('i2');
-    expect(typeof offerReadyPage.interns[0].daysOnPage).toBe('number');
-    expect(typeof offerReadyPage.avgDaysOnPage).toBe('number');
   });
 
   test('returns upcoming hiring meetings', async () => {
     const res = await handler(event('/metrics/fte-conversions'));
     const { upcomingHiringMeetings } = JSON.parse(res.body);
     expect(Array.isArray(upcomingHiringMeetings)).toBe(true);
-    expect(upcomingHiringMeetings[0].employeeId).toBe('i1');
+    expect(upcomingHiringMeetings[0]["Employee ID"]).toBe('i1');
   });
 });
 
