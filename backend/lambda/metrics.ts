@@ -34,17 +34,24 @@ function toYearMonth(dateStr: string): string {
   return dateStr.slice(0, 7); // "YYYY-MM"
 }
 
+function getStageStartDate(intern: Record<string, unknown>): string | undefined {
+  const stage = intern.stage as string;
+  if (stage === "Stage 3") return (intern.stage3PromoDate ?? intern.stage2PromoDate ?? intern.startDate) as string | undefined;
+  if (stage === "Stage 2") return (intern.stage2PromoDate ?? intern.startDate) as string | undefined;
+  return intern.startDate as string | undefined;
+}
+
 function computeRiskFlags(intern: Record<string, unknown>): string[] {
   const flags: string[] = [];
   const stage = intern.stage as string;
   const thresholds = STAGE_THRESHOLDS[stage];
-  const stageStart = (intern.lastPromotionDate as string) ?? (intern.startDate as string);
+  const stageStart = getStageStartDate(intern);
 
   if (thresholds && stageStart) {
     const months = monthsBetween(stageStart);
     if (months > thresholds.red) flags.push("exceeding_dwell_time", "promotion_overdue");
   }
-  if (!(intern.mentorName as string)?.trim()) flags.push("no_mentor");
+  if (!(intern.mentorContact as string)?.trim()) flags.push("no_mentor");
   const log = intern.mentorChangeLog as unknown[];
   if (Array.isArray(log) && log.length >= 2) flags.push("mentor_changes");
   if (flags.length >= 2) flags.push("at_risk");
@@ -73,10 +80,9 @@ function buildOverviewMetrics(interns: Record<string, unknown>[]) {
 
   const byLocation = groupCount(
     interns.filter((i) => i.programStatus === "Active"),
-    (i) => (i.location as string) ?? "Unknown"
+    (i) => (i.siteLocation as string) ?? "Unknown"
   );
 
-  // Interns joining per month
   const joinersByMonth: Record<string, number> = {};
   for (const i of interns) {
     if (i.startDate) {
@@ -85,7 +91,6 @@ function buildOverviewMetrics(interns: Record<string, unknown>[]) {
     }
   }
 
-  // Interns leaving per month (need exitDate field)
   const leaversByMonth: Record<string, Record<string, number>> = {};
   for (const i of interns) {
     const exitDate = i.exitDate as string | undefined;
@@ -104,14 +109,12 @@ function buildOverviewMetrics(interns: Record<string, unknown>[]) {
   const unregretted = exits.filter((i) => i.regrettedExit !== "Yes").length;
   const totalExits = exits.length || 1;
 
-  // Net growth: joiners - exiters per month
   const allMonths = new Set([...Object.keys(joinersByMonth), ...Object.keys(leaversByMonth)]);
   const netGrowthByMonth = [...allMonths].sort().map((month) => ({
     month,
     net: (joinersByMonth[month] ?? 0) - Object.values(leaversByMonth[month] ?? {}).reduce((a, b) => a + b, 0),
   }));
 
-  // Average time in program (months)
   const timesInProgram = interns
     .map((i) => {
       if (!i.startDate) return null;
@@ -122,15 +125,14 @@ function buildOverviewMetrics(interns: Record<string, unknown>[]) {
   const avgTimeInProgramMonths =
     timesInProgram.length ? Math.round(timesInProgram.reduce((a, b) => a + b, 0) / timesInProgram.length) : 0;
 
-  // Post-program retention
   const graduated = interns.filter((i) => i.programStatus === "Graduated");
   const stillAtCompany = graduated.filter((i) => i.postProgramStatus === "Active FTE");
 
-  // Promotion L5/L6 timeline (avg months from startDate to reaching that level)
-  const l5 = interns.filter((i) => (i.currentLevel === "L5" || i.currentLevel === "L6") && i.startDate && i.lastPromotionDate);
+  // Avg months from startDate to Stage 3 (highest promotion) for L5/L6 interns
+  const l5 = interns.filter((i) => (i.currentLevel === "L5" || i.currentLevel === "L6") && i.startDate && i.stage3PromoDate);
   const avgMonthsToPromotion =
     l5.length
-      ? Math.round(l5.reduce((a, i) => a + monthsBetween(i.startDate as string, new Date(i.lastPromotionDate as string)), 0) / l5.length)
+      ? Math.round(l5.reduce((a, i) => a + monthsBetween(i.startDate as string, new Date(i.stage3PromoDate as string)), 0) / l5.length)
       : null;
 
   return {
@@ -162,11 +164,10 @@ function buildPerfReviewMetrics(interns: Record<string, unknown>[]) {
 
   const byStage = groupCount(active, (i) => (i.stage as string) ?? "Unknown");
 
-  // Avg time per stage (months), using lastPromotionDate as stage start proxy
   const stageTimings: Record<string, number[]> = {};
   for (const i of active) {
     const stage = i.stage as string;
-    const stageStart = (i.lastPromotionDate as string) ?? (i.startDate as string);
+    const stageStart = getStageStartDate(i);
     if (stage && stageStart) {
       if (!stageTimings[stage]) stageTimings[stage] = [];
       stageTimings[stage].push(monthsBetween(stageStart));
@@ -179,38 +180,35 @@ function buildPerfReviewMetrics(interns: Record<string, unknown>[]) {
     ])
   );
 
-  // Stage dwell distribution
   const dwellDistribution: Record<string, { green: unknown[]; yellow: unknown[]; red: unknown[] }> = {};
   for (const stage of ["Stage 1", "Stage 2", "Stage 3"]) {
     const thresholds = STAGE_THRESHOLDS[stage];
     const stageInterns = active.filter((i) => i.stage === stage);
     dwellDistribution[stage] = { green: [], yellow: [], red: [] };
     for (const i of stageInterns) {
-      const stageStart = (i.lastPromotionDate as string) ?? (i.startDate as string);
+      const stageStart = getStageStartDate(i);
       const months = stageStart ? monthsBetween(stageStart) : 0;
       const bucket = months >= thresholds.red ? "red" : months >= thresholds.yellow ? "yellow" : "green";
-      (dwellDistribution[stage][bucket] as unknown[]).push({ internId: i.internId, internName: i.internName, monthsInStage: months });
+      (dwellDistribution[stage][bucket] as unknown[]).push({ employeeId: i.employeeId, firstAndLastName: i.firstAndLastName, monthsInStage: months });
     }
   }
 
-  // Interns approaching promotion window (within 2 months of yellow threshold)
   const approachingPromotion = active.filter((i) => {
     const stage = i.stage as string;
     const thresholds = STAGE_THRESHOLDS[stage];
     if (!thresholds) return false;
-    const stageStart = (i.lastPromotionDate as string) ?? (i.startDate as string);
+    const stageStart = getStageStartDate(i);
     if (!stageStart) return false;
     const months = monthsBetween(stageStart);
     return months >= thresholds.yellow - 2 && months < thresholds.red;
   });
 
-  // Risk summary
   const riskCounts = { exceedingDwellTime: 0, noMentor: 0, mentorChanges: 0, promotionOverdue: 0, atRisk: 0 };
   const flaggedInterns: unknown[] = [];
   for (const i of active) {
     const flags = computeRiskFlags(i);
     if (!flags.length) continue;
-    flaggedInterns.push({ internId: i.internId, internName: i.internName, flags });
+    flaggedInterns.push({ employeeId: i.employeeId, firstAndLastName: i.firstAndLastName, flags });
     if (flags.includes("exceeding_dwell_time")) riskCounts.exceedingDwellTime++;
     if (flags.includes("no_mentor")) riskCounts.noMentor++;
     if (flags.includes("mentor_changes")) riskCounts.mentorChanges++;
@@ -218,7 +216,6 @@ function buildPerfReviewMetrics(interns: Record<string, unknown>[]) {
     if (flags.includes("at_risk")) riskCounts.atRisk++;
   }
 
-  // Review eligibility
   const mayEligible = interns.filter((i) => i.reviewEligibilityMay === "Yes");
   const octEligible = interns.filter((i) => i.reviewEligibilityOctober === "Yes");
 
@@ -238,13 +235,12 @@ function buildPerfReviewMetrics(interns: Record<string, unknown>[]) {
 // ─── FTE Conversions ──────────────────────────────────────────────────────────
 
 function buildFteMetrics(interns: Record<string, unknown>[]) {
-  const graduating = interns.filter((i) => i.expectedGraduationDate);
+  const graduating = interns.filter((i) => i.gradDate);
   const currentYear = new Date().getFullYear().toString();
-  const thisYearGrads = graduating.filter((i) => (i.expectedGraduationDate as string).startsWith(currentYear));
+  const thisYearGrads = graduating.filter((i) => (i.gradDate as string).startsWith(currentYear));
 
   const graduatingByCohort = groupCount(thisYearGrads, (i) => (i.graduationCohort as string) ?? "Unknown");
 
-  // Avg days: hiring meeting → offer extension
   const withBothDates = interns.filter((i) => i.hiringMeetingDate && i.offerExtendedDate);
   const avgDaysByAll =
     withBothDates.length
@@ -259,11 +255,9 @@ function buildFteMetrics(interns: Record<string, unknown>[]) {
       : null;
   }
 
-  // Inclined vs Not Inclined
   const withOutcome = interns.filter((i) => i.hiringMeetingOutcome);
   const inclineBreakdown = groupCount(withOutcome, (i) => i.hiringMeetingOutcome as string);
 
-  // Offer acceptance rate
   const offersExtended = interns.filter((i) => i.offerExtendedDate);
   const offersAccepted = offersExtended.filter((i) => i.offerAccepted === "Yes");
   const offerAcceptance = {
@@ -272,19 +266,18 @@ function buildFteMetrics(interns: Record<string, unknown>[]) {
     rate: offersExtended.length ? Math.round((offersAccepted.length / offersExtended.length) * 100) : 0,
   };
 
-  // Time on offer ready wiki page
   const offerReadyPage = interns
     .filter((i) => i.dateAddedToOfferReadyWikiPage)
     .map((i) => {
       const daysOnPage = daysBetween(i.dateAddedToOfferReadyWikiPage as string, i.dateRemovedFromOfferReadyWikiPage as string | undefined);
       const colorCode = daysOnPage > 30 ? "red" : daysOnPage > 14 ? "yellow" : "green";
       return {
-        internId: i.internId,
-        internName: i.internName,
+        employeeId: i.employeeId,
+        firstAndLastName: i.firstAndLastName,
         dateAdded: i.dateAddedToOfferReadyWikiPage,
         dateRemoved: i.dateRemovedFromOfferReadyWikiPage ?? null,
         daysOnPage,
-        status: i.offerReadyStatus ?? "Active",
+        status: i.fteOfferStatus ?? "Active",
         colorCode,
       };
     })
@@ -294,19 +287,18 @@ function buildFteMetrics(interns: Record<string, unknown>[]) {
     ? Math.round(offerReadyPage.reduce((a, i) => a + i.daysOnPage, 0) / offerReadyPage.length)
     : null;
 
-  // Upcoming hiring meetings (P1)
   const today = new Date().toISOString().split("T")[0];
   const upcomingHiringMeetings = interns
-    .filter((i) => i.hiringMeetingUpcomingDate && (i.hiringMeetingUpcomingDate as string) >= today)
-    .sort((a, b) => (a.hiringMeetingUpcomingDate as string).localeCompare(b.hiringMeetingUpcomingDate as string))
+    .filter((i) => i.hiringMeetingDate && (i.hiringMeetingDate as string) >= today && !i.hiringMeetingOutcome)
+    .sort((a, b) => (a.hiringMeetingDate as string).localeCompare(b.hiringMeetingDate as string))
     .map((i) => ({
-      internId: i.internId,
-      internName: i.internName,
-      hiringMeetingUpcomingDate: i.hiringMeetingUpcomingDate,
+      employeeId: i.employeeId,
+      firstAndLastName: i.firstAndLastName,
+      hiringMeetingDate: i.hiringMeetingDate,
       stage: i.stage,
-      mentorName: i.mentorName,
+      mentorContact: i.mentorContact,
       mentorEmail: i.mentorEmail,
-      managerName: i.managerName,
+      managerContact: i.managerContact,
       managerEmail: i.managerEmail,
       notes: i.notes ?? "",
     }));
@@ -324,7 +316,7 @@ function buildFteMetrics(interns: Record<string, unknown>[]) {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const resource = event.resource; // e.g. /metrics/overview
+  const resource = event.resource;
 
   try {
     const interns = await getAllInterns();

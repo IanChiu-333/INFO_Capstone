@@ -94,7 +94,7 @@ export class BackendStack extends cdk.Stack {
     interns.addMethod("POST", internsInt);
 
     // ── /interns/{internId} ─────────────────────────────────────────────────────
-    const intern = interns.addResource("{internId}");
+    const intern = interns.addResource("{employeeId}");
     intern.addMethod("GET", internsInt);
     intern.addMethod("PATCH", internsInt);
     intern.addMethod("DELETE", internsInt);

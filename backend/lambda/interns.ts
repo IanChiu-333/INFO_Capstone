@@ -32,12 +32,19 @@ function monthsBetween(dateStr: string, toDate = new Date()): number {
   return (toDate.getFullYear() - d.getFullYear()) * 12 + (toDate.getMonth() - d.getMonth());
 }
 
+function getStageStartDate(intern: Record<string, unknown>): string | undefined {
+  const stage = intern.stage as string;
+  if (stage === "Stage 3") return (intern.stage3PromoDate ?? intern.stage2PromoDate ?? intern.startDate) as string | undefined;
+  if (stage === "Stage 2") return (intern.stage2PromoDate ?? intern.startDate) as string | undefined;
+  return intern.startDate as string | undefined;
+}
+
 function computeRiskFlags(intern: Record<string, unknown>): string[] {
   const flags: string[] = [];
   const now = new Date();
   const stage = intern.stage as string;
   const thresholds = STAGE_THRESHOLDS[stage];
-  const stageStartDate = (intern.lastPromotionDate as string) ?? (intern.startDate as string);
+  const stageStartDate = getStageStartDate(intern);
 
   if (thresholds && stageStartDate) {
     const monthsInStage = monthsBetween(stageStartDate, now);
@@ -45,7 +52,7 @@ function computeRiskFlags(intern: Record<string, unknown>): string[] {
     if (monthsInStage > thresholds.red) flags.push("promotion_overdue");
   }
 
-  if (!intern.mentorName || (intern.mentorName as string).trim() === "") {
+  if (!intern.mentorContact || (intern.mentorContact as string).trim() === "") {
     flags.push("no_mentor");
   }
 
@@ -71,12 +78,12 @@ function applyFilters(
   let result = items;
 
   if (stage) result = result.filter((i) => i.stage === stage);
-  if (location) result = result.filter((i) => i.location === location);
+  if (location) result = result.filter((i) => i.siteLocation === location);
   if (programStatus) result = result.filter((i) => i.programStatus === programStatus);
   if (graduationCohort) result = result.filter((i) => i.graduationCohort === graduationCohort);
-  if (manager) result = result.filter((i) => (i.managerName as string)?.toLowerCase().includes(manager.toLowerCase()));
-  if (mentor) result = result.filter((i) => (i.mentorName as string)?.toLowerCase().includes(mentor.toLowerCase()));
-  if (search) result = result.filter((i) => (i.internName as string)?.toLowerCase().includes(search.toLowerCase()));
+  if (manager) result = result.filter((i) => (i.managerContact as string)?.toLowerCase().includes(manager.toLowerCase()));
+  if (mentor) result = result.filter((i) => (i.mentorContact as string)?.toLowerCase().includes(mentor.toLowerCase()));
+  if (search) result = result.filter((i) => (i.firstAndLastName as string)?.toLowerCase().includes(search.toLowerCase()));
   if (year) result = result.filter((i) => i.startDate && (i.startDate as string).startsWith(year));
 
   if (reviewEligibility === "May") result = result.filter((i) => i.reviewEligibilityMay === "Yes");
@@ -95,28 +102,27 @@ function applyFilters(
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const method = event.httpMethod;
-  const internId = event.pathParameters?.internId;
+  const employeeId = event.pathParameters?.employeeId;
   const params = (event.queryStringParameters ?? {}) as Record<string, string | undefined>;
 
   try {
     // GET /interns or GET /interns?upcomingMeetings=true
-    if (method === "GET" && !internId) {
+    if (method === "GET" && !employeeId) {
       const result = await ddb.send(new ScanCommand({ TableName: TABLE_NAME }));
       let items = (result.Items ?? []) as Record<string, unknown>[];
 
       if (params.upcomingMeetings === "true") {
         const now = new Date().toISOString().split("T")[0];
         items = items
-          .filter((i) => i.hiringMeetingUpcomingDate && (i.hiringMeetingUpcomingDate as string) >= now)
+          .filter((i) => i.hiringMeetingDate && (i.hiringMeetingDate as string) >= now)
           .sort((a, b) =>
-            (a.hiringMeetingUpcomingDate as string).localeCompare(b.hiringMeetingUpcomingDate as string)
+            (a.hiringMeetingDate as string).localeCompare(b.hiringMeetingDate as string)
           );
         return ok(items);
       }
 
       items = applyFilters(items, params);
 
-      // Attach computed risk flags to each intern when riskFlags filter is active
       if (params.withRiskFlags === "true" || params.riskFlags) {
         items = items.map((i) => ({ ...i, _riskFlags: computeRiskFlags(i) }));
       }
@@ -124,9 +130,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return ok(items);
     }
 
-    // GET /interns/{internId}
-    if (method === "GET" && internId) {
-      const result = await ddb.send(new GetCommand({ TableName: TABLE_NAME, Key: { internId } }));
+    // GET /interns/{employeeId}
+    if (method === "GET" && employeeId) {
+      const result = await ddb.send(new GetCommand({ TableName: TABLE_NAME, Key: { employeeId } }));
       if (!result.Item) return err(404, "Intern not found");
       return ok({ ...result.Item, _riskFlags: computeRiskFlags(result.Item as Record<string, unknown>) });
     }
@@ -134,25 +140,25 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // POST /interns
     if (method === "POST") {
       const body = JSON.parse(event.body ?? "{}");
-      if (!body.internId) return err(400, "internId is required");
+      if (!body.employeeId) return err(400, "employeeId is required");
       await ddb.send(new PutCommand({ TableName: TABLE_NAME, Item: body }));
       return ok(body);
     }
 
-    // PATCH /interns/{internId}
-    if (method === "PATCH" && internId) {
+    // PATCH /interns/{employeeId}
+    if (method === "PATCH" && employeeId) {
       const body = JSON.parse(event.body ?? "{}");
       const keys = Object.keys(body);
       if (!keys.length) return err(400, "No fields to update");
 
-      const updateExpr = "SET " + keys.map((k, i) => `#k${i} = :v${i}`).join(", ");
+      const updateExpr = "SET " + keys.map((_k, i) => `#k${i} = :v${i}`).join(", ");
       const exprNames = Object.fromEntries(keys.map((k, idx) => [`#k${idx}`, k]));
       const exprValues = Object.fromEntries(keys.map((k, idx) => [`:v${idx}`, body[k]]));
 
       const result = await ddb.send(
         new UpdateCommand({
           TableName: TABLE_NAME,
-          Key: { internId },
+          Key: { employeeId },
           UpdateExpression: updateExpr,
           ExpressionAttributeNames: exprNames,
           ExpressionAttributeValues: exprValues,
@@ -162,10 +168,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return ok(result.Attributes);
     }
 
-    // DELETE /interns/{internId}
-    if (method === "DELETE" && internId) {
-      await ddb.send(new DeleteCommand({ TableName: TABLE_NAME, Key: { internId } }));
-      return ok({ deleted: internId });
+    // DELETE /interns/{employeeId}
+    if (method === "DELETE" && employeeId) {
+      await ddb.send(new DeleteCommand({ TableName: TABLE_NAME, Key: { employeeId } }));
+      return ok({ deleted: employeeId });
     }
 
     return err(405, "Method not allowed");
